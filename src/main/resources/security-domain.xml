@@ -1,0 +1,13 @@
+<security-domain name="idp" cache-type="default">
+	<authentication>
+		<login-module code="YourPreferredLoginModule" flag="required" />
+		<!-- 
+		<login-module code="UsersRoles" flag="required">
+			<module-option name="usersProperties" value="users.properties" />
+			<module-option name="rolesProperties" value="roles.properties" />
+		</login-module>
+		-->
+		<login-module code="org.jboss.test.RoleMappingLoginModule"
+			flag="required" />
+	</authentication>
+</security-domain>
