@@ -12,6 +12,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<module.name>org.jboss.test</module.name>
 		<module.directory>org/jboss/test</module.directory>
 		<output.name>${project.artifactId}-${project.version}</output.name>
 	</properties>
@@ -47,7 +48,7 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${project.build.directory}/modules/${module.directory}</outputDirectory>
+							<outputDirectory>${project.build.directory}/modules/${module.directory}/main</outputDirectory>
 							<resources>
 								<resource>
 									<directory>${project.build.directory}</directory>

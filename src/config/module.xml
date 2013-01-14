@@ -1,4 +1,4 @@
-<module xmlns="urn:jboss:module:1.0" name="org.jboss.as.security.providers">
+<module xmlns="urn:jboss:module:1.0" name="${module.name}">
     <resources>
         <resource-root path="${output.name}.jar"/>
     </resources>
