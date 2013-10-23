@@ -1,5 +1,3 @@
-# Test application
+# FSP labels tool 
 
-Java application playground
-
-MD Syntax guide - http://markdoc.org/ref/markup
+Retrieves "must have" labels from fsp.xml
