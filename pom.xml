@@ -14,6 +14,27 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<!-- Define the version of JBoss' Java EE 6 APIs we want to import. Any 
+				dependencies from org.jboss.spec will have their version defined by this 
+				BOM -->
+			<!-- JBoss distributes a complete set of Java EE 6 APIs including a Bill 
+				of Materials (BOM). A BOM specifies the versions of a "stack" (or a collection) 
+				of artifacts. We use this here so that we always get the correct versions 
+				of artifacts. Here we use the jboss-javaee-6.0 stack (you can read this as 
+				the JBoss stack of the Java EE 6 APIs). You can actually use this stack with 
+				any version of JBoss AS that implements Java EE 6, not just JBoss AS 7! -->
+			<dependency>
+				<groupId>org.jboss.spec</groupId>
+				<artifactId>jboss-javaee-6.0</artifactId>
+				<version>3.0.2.Final-redhat-6</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<build>
 		<finalName>test-app</finalName>
 		<resources>
@@ -24,15 +45,69 @@
 				</includes>
 			</resource>
 		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<configuration>
+					<mainClass>org.jboss.test.App</mainClass>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 
 	<dependencies>
 		<dependency>
-			<!-- http://maven.apache.org/plugins/maven-surefire-plugin/examples/junit.html -->
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
-			<scope>test</scope>
+			<groupId>org.picketlink.distribution</groupId>
+			<artifactId>picketlink-jbas7</artifactId>
+			<version>2.1.9.SP1-redhat-1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.picketlink</groupId>
+			<artifactId>picketlink-core</artifactId>
+			<version>2.1.9.SP1-redhat-1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.logging</groupId>
+			<artifactId>jboss-logging</artifactId>
+			<version>3.1.2.GA-redhat-1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jboss.ws.cxf</groupId>
+			<artifactId>jbossws-cxf-client</artifactId>
+			<version>4.2.2.Final-redhat-2</version>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>eap6x-maven</id>
+			<name>EAP repo</name>
+			<url>http://download.lab.bos.redhat.com/brewroot/repos/jb-eap-6-rhel-6-build/latest/maven/</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>never</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+
+	<pluginRepositories>
+		<pluginRepository>
+			<id>eap6x-maven-plugin</id>
+			<name>EAP repo</name>
+			<url>http://download.lab.bos.redhat.com/brewroot/repos/jb-eap-6-rhel-6-build/latest/maven/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
 </project>
