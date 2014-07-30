@@ -7,7 +7,7 @@
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>test-app</name>
+	<name>${project.artifactId}</name>
 	<url>https://github.com/kwart/test-app</url>
 
 	<properties>
@@ -15,7 +15,7 @@
 	</properties>
 
 	<build>
-		<finalName>test-app</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<resources>
 			<resource>
 				<directory>src/main/java</directory>
