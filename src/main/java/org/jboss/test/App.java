@@ -1,45 +1,43 @@
 package org.jboss.test;
 
+import java.io.IOException;
+import java.security.PrivilegedActionException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import org.jboss.shared.Utils;
 
 /**
  * @author Josef Cacek
  */
-public class App {
+public class App implements Runnable {
 
-	public static void main(String[] args) throws Exception {
-		final Set<String> argSet = new HashSet<String>(Arrays.asList(args));
-		final boolean useDoPrivileged = argSet.contains("privileged");
-		final boolean useNewThread = argSet.contains("threaded");
+  private final boolean useDoPrivileged;
 
-		List<String> users = null;
-		if (useNewThread) {
-			final ExecutorService executor = Executors
-					.newSingleThreadExecutor();
-			Future<List<String>> future = executor
-					.submit(new Callable<List<String>>() {
+  private App(boolean useDoPrivileged) {
+    this.useDoPrivileged = useDoPrivileged;
+  }
 
-						@Override
-						public List<String> call() throws Exception {
-							return Utils.getUsersList(useDoPrivileged);
-						}
+  public static void main(String[] args) throws Exception {
+    final Set<String> argSet = new HashSet<String>(Arrays.asList(args));
+    final App app = new App(argSet.contains("privileged"));
+    if (argSet.contains("threaded")) {
+      new Thread(app).start();
+    } else {
+      app.run();
+    }
+  }
 
-					});
-			users = future.get();
-		} else {
-			users = Utils.getUsersList(useDoPrivileged);
-		}
-
-		System.out.println("System users: " + users);
-	}
+  @Override
+  public void run() {
+    try {
+      System.out.println("System users: " + Utils.getUsersList(useDoPrivileged));
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (PrivilegedActionException e) {
+      e.printStackTrace();
+    }
+  }
 
 }
