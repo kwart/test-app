@@ -24,7 +24,6 @@ package org.jboss.as.test.integration.logging.syslogserve;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.Security;
 
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.KeyManagerFactory;
@@ -33,7 +32,6 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.io.IOUtils;
 import org.productivity.java.syslog4j.SyslogRuntimeException;
-import org.productivity.java.syslog4j.server.impl.net.tcp.ssl.SSLTCPNetSyslogServerConfigIF;
 
 /**
  * TCP syslog server implementation for syslog4j.
@@ -53,14 +51,12 @@ public class TLSSyslogServer extends TCPSyslogServer {
   public void initialize() throws SyslogRuntimeException {
     super.initialize();
 
-    // remove BouncyCastle provider if installed
-    Security.removeProvider("BC");
-
-    final SSLTCPNetSyslogServerConfigIF config = (SSLTCPNetSyslogServerConfigIF) this.tcpNetSyslogServerConfig;
-
     try {
       final KeyStore keystore = KeyStore.getInstance("JKS");
       final InputStream is = getClass().getResourceAsStream("/server.keystore");
+      if (is == null) {
+        System.err.println("Server keystore not found.");
+      }
       final char[] keystorePwd = "123456".toCharArray();
       try {
         keystore.load(is, keystorePwd);

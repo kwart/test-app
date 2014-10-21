@@ -25,8 +25,17 @@ public class App {
     SyslogServer.shutdown();
 
     String syslogProtocol = "tls";
+    System.out.println("Simple syslog server (RFC-5424)");
+    System.out.println("Usage:");
+    System.out.println("  java -jar syslog-server.jar [protocol]");
+    System.out.println();
+    System.out.println("Possible protocols: udp, tcp, tls");
+    System.out.println();
+
     if (args.length > 0) {
       syslogProtocol = args[0];
+    } else {
+      System.err.println("No protocol provided. Defaulting to " + syslogProtocol);
     }
 
     SyslogServerConfigIF config = getSyslogConfig(syslogProtocol);
