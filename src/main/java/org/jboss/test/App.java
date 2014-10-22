@@ -21,6 +21,12 @@ public class App {
 
   public static void main(String[] args) throws SyslogRuntimeException, UnknownHostException {
 
+    // Details for the properties - http://docs.oracle.com/javase/7/docs/technotes/guides/security/jsse/JSSERefGuide.html
+    System.setProperty("jsse.enableSNIExtension", "false");
+    // just in case...
+    System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "true");
+    System.setProperty("sun.security.ssl.allowLegacyHelloMessages", "true");
+
     // clear created server instances (TCP/UDP)
     SyslogServer.shutdown();
 
@@ -52,9 +58,8 @@ public class App {
     System.out.println("Host:     " + config.getHost());
     System.out.println("Port:     " + config.getPort());
 
-    SyslogServer.createThreadedInstance(syslogProtocol, config);
     // start syslog server
-
+    SyslogServer.createThreadedInstance(syslogProtocol, config);
   }
 
   private static SyslogServerConfigIF getSyslogConfig(String syslogProtocol) {
