@@ -1,6 +1,6 @@
 sudo: required
 
-language: go
+language: java
 
 services:  
     - docker
@@ -15,7 +15,10 @@ before_install:
 
     # upgrade docker-engine to specific version
     - sudo apt-get -o Dpkg::Options::="--force-confnew" install -y docker-engine=${DOCKER_VERSION}
+    - echo 'DOCKER_OPTS="-H tcp:// -H unix:///var/run/docker.sock"' | sudo tee -a /etc/default/docker 
+    - sudo cat /etc/default/docker
+    - sudo service docker restart
+    - docker version
 
 script:  
     - docker version
-    - ls -R /etc
