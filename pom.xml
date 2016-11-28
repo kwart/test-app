@@ -16,14 +16,6 @@
 
 	<build>
 		<finalName>${project.artifactId}</finalName>
-		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*.java</include>
-				</includes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -36,43 +28,59 @@
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.2.1</version>
-				<configuration>
-					<mainClass>org.jboss.test.App</mainClass>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.2</version>
+				<artifactId>keytool-maven-plugin</artifactId>
+				<version>1.5</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>keytool-api-1.7</artifactId>
+						<version>1.5</version>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution>
-						<phase>package</phase>
+						<phase>generate-test-resources</phase>
+						<id>genkey-1</id>
 						<goals>
-							<goal>shade</goal>
+							<goal>generateKeyPair</goal>
 						</goals>
 						<configuration>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>org.jboss.test.App</mainClass>
-								</transformer>
-							</transformers>
-                           <createDependencyReducedPom>false</createDependencyReducedPom>
+							<keystore>${basedir}/target/keystore1</keystore>
+							<keypass>keystore1</keypass>
+							<storepass>keystore1</storepass>
+						</configuration>
+					</execution>
+					<execution>
+						<phase>generate-test-resources</phase>
+						<id>genkey-2</id>
+						<goals>
+							<goal>generateKeyPair</goal>
+						</goals>
+						<configuration>
+							<keystore>${basedir}/target/keystore2</keystore>
+							<keypass>keystore2</keypass>
+							<storepass>keystore2</storepass>
 						</configuration>
 					</execution>
 				</executions>
+				<configuration>
+					<dname>cn=commonName, ou=organizationUnit, o=organizationName,
+						c=countryCode</dname>
+					<alias>test</alias>
+					<keyalg>RSA</keyalg>
+					<keysize>2048</keysize>
+					<validity>365</validity>
+					<storetype>JKS</storetype>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 	<dependencies>
 		<dependency>
-			<!-- http://maven.apache.org/plugins/maven-surefire-plugin/examples/junit.html -->
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
+			<version>4.12</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
