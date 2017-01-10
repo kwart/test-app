@@ -59,7 +59,7 @@
 									<mainClass>org.jboss.test.App</mainClass>
 								</transformer>
 							</transformers>
-                           <createDependencyReducedPom>false</createDependencyReducedPom>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
 						</configuration>
 					</execution>
 				</executions>
@@ -74,6 +74,20 @@
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>test</scope>
+		</dependency>
+<!-- 
+		<dependency>
+			<groupId>org.wildfly</groupId>
+			<artifactId>wildfly-jms-client-bom</artifactId>
+			<version>10.1.0.Final</version>
+			<type>pom</type>
+		</dependency>
+-->
+		<dependency>
+			<groupId>org.jboss.eap</groupId>
+			<artifactId>wildfly-jms-client-bom</artifactId>
+			<version>7.1.0.Alpha1-redhat-11</version>
+			<type>pom</type>
 		</dependency>
 	</dependencies>
 </project>
