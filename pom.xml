@@ -12,18 +12,13 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<version.org.wildfly>11.0.0.Alpha1-SNAPSHOT</version.org.wildfly>
+		<version.org.jboss.eap>7.1.0.Alpha1-redhat-SNAPSHOT</version.org.jboss.eap>
+		<version.org.jboss.modules.jboss-modules>1.6.0.Beta4</version.org.jboss.modules.jboss-modules>
 	</properties>
 
 	<build>
 		<finalName>${project.artifactId}</finalName>
-		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*.java</include>
-				</includes>
-			</resource>
-		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -59,7 +54,7 @@
 									<mainClass>org.jboss.test.App</mainClass>
 								</transformer>
 							</transformers>
-                           <createDependencyReducedPom>false</createDependencyReducedPom>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
 						</configuration>
 					</execution>
 				</executions>
@@ -74,6 +69,26 @@
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>test</scope>
+		</dependency>
+<!-- 
+		<dependency>
+			<groupId>org.wildfly</groupId>
+			<artifactId>wildfly-jms-client-bom</artifactId>
+			<version>${version.org.wildfly}</version>
+			<type>pom</type>
+		</dependency>
+-->
+		<dependency>
+			<groupId>org.jboss.eap</groupId>
+			<artifactId>wildfly-jms-client-bom</artifactId>
+			<version>${version.org.jboss.eap}</version>
+			<type>pom</type>
+		</dependency>
+		<!-- workaround for https://issues.jboss.org/browse/JBEAP-7282 -->
+		<dependency>
+			<groupId>org.jboss.modules</groupId>
+			<artifactId>jboss-modules</artifactId>
+			<version>${version.org.jboss.modules.jboss-modules}</version>
 		</dependency>
 	</dependencies>
 </project>
