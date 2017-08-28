@@ -2,7 +2,6 @@ package org.jboss.test;
 
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -15,9 +14,10 @@ import junit.framework.Assert;
 public class HashMapTest {
 
     /**
-     * Count of entries in the map after which we'll stop adding new ones.
+     * Count of entries in the map after which we'll stop adding new ones. If you don't hit the failures with this setting in
+     * your environment, try to increase (x 10 for instance).
      */
-    private static final int MIN_ENTRIES = 10_000_000;
+    private static final int TEST_ENTRIES_COUNT = 1_000_000;
 
     /**
      * Test filling a HashMap using single worker thread. This one is expected to pass. There are a happens-before relations
@@ -46,7 +46,7 @@ public class HashMapTest {
 
     /**
      * Treeifying bins (where entries with the same key.hashCode goes) is done after reaching a threshold
-     * ({@code HashMap#TREEIFY_THRESHOLD}). Let's try to hunt the problem which can occur there (ClassCastException).
+     * ({@code HashMap#TREEIFY_THRESHOLD}). Let's try to hunt the problem which can occur there (a {@link ClassCastException}).
      */
     @Test
     public void huntForTreeifyingIssues() throws InterruptedException {
@@ -71,6 +71,35 @@ public class HashMapTest {
     }
 
     /**
+     * Test removing entries from a HashMap using 2 worker threads. The HashMap instance is filled with values first and then 2
+     * worker threads are used to remove entries from the map. After the worker threads successfully finishes, the size of the
+     * map is verified (0 is expected).
+     */
+    @Test
+    public void testRemoveWithTwoThreads() throws InterruptedException {
+        System.out.println("Starting test which removes from the map  using 2 threads");
+        final HashMap<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < TEST_ENTRIES_COUNT; i++) {
+            map.put(i, i);
+        }
+        final AtomicInteger counter = new AtomicInteger(TEST_ENTRIES_COUNT);
+        final Thread[] threads = new Thread[2];
+        // create workers
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new Thread(new RemoveFromMapRunnable(map, counter), "T" + i);
+            threads[i].start();
+        }
+        // wait for all the workers to finish
+        for (int i = 0; i < threads.length; i++) {
+            threads[i].join();
+        }
+        // check the counter value. (This's not expected to fail.)
+        Assert.assertTrue("Unexpected counter size after finishing", counter.get() < 1);
+        // if the remove operation would be thread-safe, we would see empty map here.
+        Assert.assertEquals("Unexpected HashMap size after finishing", 0, map.size());
+    }
+
+    /**
      * Implementation of {@link HashMap} thread safety test with given count of threads.
      * 
      * @param threadCount
@@ -92,7 +121,7 @@ public class HashMapTest {
         }
         // check if the counter reached the expected size. (This's not expected to fail.)
         final int expectedMapSize = counter.get();
-        Assert.assertFalse("Creating entries finished too early", expectedMapSize < MIN_ENTRIES);
+        Assert.assertFalse("Creating entries finished too early", expectedMapSize < TEST_ENTRIES_COUNT);
 
         // check if we lost some data in between
         int missingCount = 0;
@@ -123,7 +152,7 @@ public class HashMapTest {
             final String val = Thread.currentThread().getName();
             int internalCounter = 0;
             int globalCounter;
-            while (counter.get() < MIN_ENTRIES) {
+            while (counter.get() < TEST_ENTRIES_COUNT) {
                 map.put((globalCounter = counter.incrementAndGet()), val);
                 internalCounter++;
                 int n = map.size();
@@ -140,7 +169,29 @@ public class HashMapTest {
     }
 
     /**
-     * Runnable which adds entries with the same hashcode. The thread runs 1 minute at most.
+     * Runnable which removes entries from given {@link HashMap}. Newly
+     */
+    public static class RemoveFromMapRunnable implements Runnable {
+
+        private final HashMap<Integer, Integer> map;
+        private final AtomicInteger counter;
+
+        public RemoveFromMapRunnable(HashMap<Integer, Integer> map, AtomicInteger counter) {
+            this.map = Objects.requireNonNull(map);
+            this.counter = Objects.requireNonNull(counter);
+        }
+
+        @Override
+        public void run() {
+            int removeKey;
+            while ((removeKey = counter.decrementAndGet()) > 0) {
+                Assert.assertEquals(map.remove(removeKey), new Integer(removeKey));
+            }
+        }
+    }
+
+    /**
+     * Thread which adds entries with the same hashcode. The thread runs 1 minute at most.
      */
     public static class AddWithSameHashCodeThread extends Thread {
 
