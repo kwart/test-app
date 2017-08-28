@@ -2,6 +2,7 @@ package org.jboss.test;
 
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -41,6 +42,32 @@ public class HashMapTest {
     @Test
     public void testFillWithThreeThreads() throws InterruptedException {
         assertMapSafeInThreadPool(3);
+    }
+
+    /**
+     * Treeifying bins (where entries with the same key.hashCode goes) is done after reaching a threshold
+     * ({@code HashMap#TREEIFY_THRESHOLD}). Let's try to hunt the problem which can occur there (ClassCastException).
+     */
+    @Test
+    public void huntForTreeifyingIssues() throws InterruptedException {
+        System.out.println("Starting hunt for treeifying issues. It should run a minute at most.");
+        final HashMap<ObjectWithFixedHashcode, Void> map = new HashMap<>();
+        final AddWithSameHashCodeThread addingThread1 = new AddWithSameHashCodeThread(map, "T1");
+        final AddWithSameHashCodeThread addingThread2 = new AddWithSameHashCodeThread(map, "T2");
+
+        addingThread1.start();
+        addingThread2.start();
+
+        // active waiting for an ClassCastException
+        while (addingThread1.isAlive() && addingThread2.isAlive() && !addingThread1.hitClassCastException
+                && !addingThread2.hitClassCastException) {
+            // wait a sec
+            Thread.sleep(1000L);
+        }
+        addingThread1.interrupt();
+        addingThread2.interrupt();
+        Assert.assertFalse("Caught ClassCastException when putting entry to the HashMap",
+                addingThread1.hitClassCastException || addingThread2.hitClassCastException);
     }
 
     /**
@@ -108,6 +135,36 @@ public class HashMapTest {
                     // update internal counter to last map size value
                     internalCounter = n;
                 }
+            }
+        }
+    }
+
+    /**
+     * Runnable which adds entries with the same hashcode. The thread runs 1 minute at most.
+     */
+    public static class AddWithSameHashCodeThread extends Thread {
+
+        private final HashMap<ObjectWithFixedHashcode, Void> map;
+
+        volatile boolean hitClassCastException;
+
+        public AddWithSameHashCodeThread(HashMap<ObjectWithFixedHashcode, Void> map, String name) {
+            super(name);
+            this.map = Objects.requireNonNull(map);
+        }
+
+        @Override
+        public void run() {
+            final long endTime = System.currentTimeMillis() + 60 * 1000;
+            try {
+                while (!interrupted() && System.currentTimeMillis() < endTime) {
+                    map.put(new ObjectWithFixedHashcode(), null);
+                    if (map.size() > 100)
+                        map.clear();
+                }
+            } catch (ClassCastException e) {
+                hitClassCastException = true;
+                e.printStackTrace();
             }
         }
     }
