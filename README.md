@@ -10,7 +10,7 @@ mvn clean install
 
 ## Implementation
 
-[HashMapTest.java](src/test/java/org/jboss/test/HashMapTest.java)
+[HashMapTest.java](src/test/java/cz/cacek/test/HashMapTest.java)
 
 ## What results should you expect?
 

@@ -1,4 +1,4 @@
-package org.jboss.test;
+package cz.cacek.test;
 
 public class ObjectWithFixedHashcode {
 
