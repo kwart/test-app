@@ -64,16 +64,17 @@ public class HashMapTest {
             threads[i].join();
         }
         // check if the counter reached the expected size. (This's not expected to fail.)
-        Assert.assertFalse("Creating entries finished too early", counter.get() < MIN_ENTRIES);
+        final int expectedMapSize = counter.get();
+        Assert.assertFalse("Creating entries finished too early", expectedMapSize < MIN_ENTRIES);
 
         // check if we lost some data in between
         int missingCount = 0;
-        for (int i = 1; i <= map.size(); i++) {
+        for (int i = 1; i <= expectedMapSize; i++) {
             if (null == map.get(i)) {
                 missingCount++;
             }
         }
-        Assert.assertEquals("Unexpected count of null-value entries found", 0, missingCount);
+        Assert.assertEquals("Unexpected count of null-valued entries found", 0, missingCount);
     }
 
     /**
