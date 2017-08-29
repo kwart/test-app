@@ -22,6 +22,12 @@ public abstract class AbstractMapTestBase {
 	 */
 	private static final int TEST_ENTRIES_COUNT = 1_000_000;
 
+	/**
+	 * Placeholder map entry value. It's necessary for {@link Map}
+	 * implementations which don't allow {@code null} values.
+	 */
+	private static final Object NULL_OBJECT = new Object();
+
 	abstract protected <K, V> Map<K, V> createMapInstance();
 
 	/**
@@ -58,7 +64,7 @@ public abstract class AbstractMapTestBase {
 	@Test
 	public void huntForTreeifyingIssues() throws InterruptedException {
 		System.out.println("Starting hunt for treeifying issues. It should run a minute at most.");
-		final Map<ObjectWithFixedHashcode, Void> map = createMapInstance();
+		final Map<ObjectWithFixedHashcode, Object> map = createMapInstance();
 		final AddWithSameHashCodeThread addingThread1 = new AddWithSameHashCodeThread(map, "T1");
 		final AddWithSameHashCodeThread addingThread2 = new AddWithSameHashCodeThread(map, "T2");
 
@@ -209,11 +215,11 @@ public abstract class AbstractMapTestBase {
 	 */
 	public static class AddWithSameHashCodeThread extends Thread {
 
-		private final Map<ObjectWithFixedHashcode, Void> map;
+		private final Map<ObjectWithFixedHashcode, Object> map;
 
 		volatile boolean hitClassCastException;
 
-		public AddWithSameHashCodeThread(Map<ObjectWithFixedHashcode, Void> map, String name) {
+		public AddWithSameHashCodeThread(Map<ObjectWithFixedHashcode, Object> map, String name) {
 			super(name);
 			this.map = Objects.requireNonNull(map);
 		}
@@ -223,7 +229,7 @@ public abstract class AbstractMapTestBase {
 			final long endTime = System.currentTimeMillis() + 60 * 1000;
 			try {
 				while (!interrupted() && System.currentTimeMillis() < endTime) {
-					map.put(new ObjectWithFixedHashcode(), null);
+					map.put(new ObjectWithFixedHashcode(), NULL_OBJECT);
 					if (map.size() > 100)
 						map.clear();
 				}
