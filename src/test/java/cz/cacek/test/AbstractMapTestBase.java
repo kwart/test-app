@@ -197,7 +197,7 @@ public abstract class AbstractMapTestBase {
 		@Override
 		public void run() {
 			int removeKey;
-			while ((removeKey = counter.decrementAndGet()) > 0) {
+			while ((removeKey = counter.decrementAndGet()) >= 0) {
 				Assert.assertEquals(map.remove(removeKey), new Integer(removeKey));
 			}
 		}
