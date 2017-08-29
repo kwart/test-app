@@ -5,18 +5,23 @@
 ```bash
 git clone -b hashmap-thread-safety https://github.com/kwart/test-app.git
 cd test-app
-mvn clean install
+mvn clean test
 ```
 
 ## Implementation
 
-[HashMapTest.java](src/test/java/cz/cacek/test/HashMapTest.java)
+Abstract parent [AbstractMapTestBase.java](src/test/java/cz/cacek/test/AbstractMapTestBase.java) contains tests logic. The implementing classes just provide `Map` instances:
+* [HashMapTest.java](src/test/java/cz/cacek/test/HashMapTest.java)
+* [SynchronizedHashMapTest.java](src/test/java/cz/cacek/test/SynchronizedHashMapTest.java)
+* [ConcurrentHashMapTest.java](src/test/java/cz/cacek/test/ConcurrentHashMapTest.java)
 
 ## What results should you expect?
 
-Probably 4 of 5 tests failing. The `testFillWithSingleThread` should pass always.
+All the test methods should pass for `SynchronizedHashMapTest` and `ConcurrentHashMapTest` classes.
 
-If more tests is passing, try to increase the value of `TEST_ENTRIES_COUNT` constant. E.g.
+There will probably fail 4 of 5 tests in `HashMapTest` - they show the synchronization issues.
+The only passing test method should be the `testFillWithSingleThread`.
+If more tests is passing for you in `HashMapTest`, try to increase the value of `AbstractMapTestBase.TEST_ENTRIES_COUNT` constant. E.g.
 
 ```java
 private static final int TEST_ENTRIES_COUNT = 10_000_000;
@@ -25,15 +30,13 @@ private static final int TEST_ENTRIES_COUNT = 10_000_000;
 ### Example output
 
 ```
-[INFO] 
 [INFO] Results:
 [INFO] 
 [ERROR] Failures: 
-[ERROR]   HashMapTest.huntForTreeifyingIssues:69 Caught ClassCastException when putting entry to the HashMap
-[ERROR]   HashMapTest.testFillWithThreeThreads:44->assertMapSafeInThreadPool:133 Unexpected count of null-valued entries found expected:<0> but was:<236186>
-[ERROR]   HashMapTest.testFillWithTwoThreads:36->assertMapSafeInThreadPool:133 Unexpected count of null-valued entries found expected:<0> but was:<423288>
-[ERROR]   HashMapTest.testRemoveWithTwoThreads:99 Unexpected HashMap size after finishing expected:<0> but was:<224044>
+[ERROR]   HashMapTest>AbstractMapTestBase.huntForTreeifyingIssues:82 Caught ClassCastException when putting entry to the Map
+[ERROR]   HashMapTest>AbstractMapTestBase.testFillWithThreeThreads:56->AbstractMapTestBase.assertMapSafeInThreadPool:150 Unexpected count of null-valued entries found expected:<0> but was:<498025>
+[ERROR]   HashMapTest>AbstractMapTestBase.testFillWithTwoThreads:48->AbstractMapTestBase.assertMapSafeInThreadPool:150 Unexpected count of null-valued entries found expected:<0> but was:<507767>
+[ERROR]   HashMapTest>AbstractMapTestBase.testRemoveWithTwoThreads:114 Unexpected Map size after finishing expected:<0> but was:<242356>
 [INFO] 
-[ERROR] Tests run: 5, Failures: 4, Errors: 0, Skipped: 0
-
+[ERROR] Tests run: 15, Failures: 4, Errors: 0, Skipped: 0
 ```
