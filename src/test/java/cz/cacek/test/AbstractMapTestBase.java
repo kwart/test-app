@@ -33,7 +33,7 @@ public abstract class AbstractMapTestBase {
      */
     @Test
     public void testFillWithSingleThread() throws InterruptedException {
-        assertMapSafeInThreadPool(1);
+        assertMapFillingVisibleForGivenThreadCount(1);
     }
 
     /**
@@ -41,7 +41,7 @@ public abstract class AbstractMapTestBase {
      */
     @Test
     public void testFillWithTwoThreads() throws InterruptedException {
-        assertMapSafeInThreadPool(2);
+        assertMapFillingVisibleForGivenThreadCount(2);
     }
 
     /**
@@ -49,7 +49,7 @@ public abstract class AbstractMapTestBase {
      */
     @Test
     public void testFillWithThreeThreads() throws InterruptedException {
-        assertMapSafeInThreadPool(3);
+        assertMapFillingVisibleForGivenThreadCount(3);
     }
 
     /**
@@ -132,11 +132,12 @@ public abstract class AbstractMapTestBase {
     }
 
     /**
-     * Implementation of {@link Map} thread safety test with given count of threads.
-     *
-     * @param threadCount
+     * Runs the filling {@link Map} test with given count of worker threads. Checks if the final size of the map is the expected
+     * one.
+     * 
+     * @param threadCount count of worker threads to be created and started to fill the map
      */
-    private void assertMapSafeInThreadPool(int threadCount) throws InterruptedException {
+    private void assertMapFillingVisibleForGivenThreadCount(int threadCount) throws InterruptedException {
         System.out.println("Starting test with filling map using " + threadCount + " thread(s)");
 
         // Create an empty map instance.
@@ -243,8 +244,10 @@ public abstract class AbstractMapTestBase {
         public void run() {
             int removeKey;
             while ((removeKey = counter.decrementAndGet()) >= 0) {
-                // Remove the entry with key retrieved from the atomic counter and check that the removed entry has expected value. This assert should pass, because filling
-                // the map (in control thread) is visible for this thread as the Thread.start() created the happens-before ordering.
+                // Remove the entry with key retrieved from the atomic counter and check that the removed entry has expected
+                // value. This assert should pass, because filling
+                // the map (in control thread) is visible for this thread as the Thread.start() created the happens-before
+                // ordering.
                 Assert.assertEquals(map.remove(removeKey), new Integer(removeKey));
             }
         }
