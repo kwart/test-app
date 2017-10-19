@@ -1,8 +1,10 @@
-package org.jboss.test;
+package cz.cacek.test;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
+import cz.cacek.test.App;
 
 /**
  * A AppTest.

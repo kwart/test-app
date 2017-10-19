@@ -1,0 +1,18 @@
+language: java
+sudo: false
+install: true
+jdk:
+- oraclejdk8
+notifications:
+  email: false
+addons:
+  sonarqube:
+    organization: kwart-github
+    token:
+      secure: fh2HR/r0EjuQNScBT1qw9xgzpzLgFaIH4bKpM6lmXurx4xnyIA6SiC2cUj5Ij27Y+tNzdhRdyOyzstHZx2mJlTjBVol5hDRlJY3MzWEFxS42q1wCeKbEXIjp5NoREpS5C0arbifzHBzGi+6ulXa/+msY6d80a96jOjpsPbU+FcwNrr7nXYrG+XCIloA575G1vcD3pfL3ceKCWoJjU1EHSoHntkx64gGdh1GoMDEoKCAl9s89x/DdATgslVLJ/aabU+Ntz+jL4w1Ja055qTgRDRlUvIMSwE1pz/pVKbDVtkWDs9QGuxZ4EupnZYnXbBQZotdwO41JHd7WUEm7tABcM3ZPfvLBMEN0t0+yYL+xCeAZ8wgjs46lWU6Z+RPVEC96tHvH2JeEeYLGLMFdrsd10aRYbgtsbo+uqleWSH9oVKtGRvAOMAHp8EQooRubdmcNkGIt+DRykYVzR1UlF6Iy1PB1Uyy/hYWjlaB2bhjEpBVfwGsy6zDIv2iaRtpIT15w49FPCQGXd0FP5jKPyV1Jjn42EMfqdP1PVDZq3fBQaLeA7/noZLxb2SKl8l4MyReCWyKN0R56cnBLxuk1HGzraKpBWCFVK7EnWSldb8Xcs7qjUKZuXh5+vaLPl2A4l905NrpBNrbXuZ8+mIRCRMkDuIu/lOi/LbpGoqppOhn/JIM=
+script:
+- mvn clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar
+cache:
+  directories:
+  - "$HOME/.m2/repository"
+  - "$HOME/.sonar/cache"
