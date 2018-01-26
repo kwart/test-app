@@ -1,18 +1,19 @@
 package cz.cacek.test;
 
+import com.hazelcast.core.Hazelcast;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.instance.HazelcastInstanceFactory;
+
 /**
- * Hello world!
- *
- * @author Josef Cacek
+ * Hazelcast Hello world!
  */
 public class App {
 
     public static void main(String[] args) {
-        System.out.println(sayHello());
-        new Exception("ahoj");
-    }
-
-    protected static String sayHello() {
-    	return "Hello World!";
+        try {
+            HazelcastInstance hz = Hazelcast.newHazelcastInstance();
+        } finally {
+            HazelcastInstanceFactory.terminateAll();
+        }
     }
 }
