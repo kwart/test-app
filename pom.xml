@@ -17,7 +17,7 @@
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
 
-        <version.hazelcast>3.9.2</version.hazelcast>
+        <version.hazelcast>3.10-SNAPSHOT</version.hazelcast>
     </properties>
 
     <build>
@@ -56,6 +56,11 @@
             <artifactId>hazelcast-enterprise-all</artifactId>
             -->
             <version>${version.hazelcast}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
