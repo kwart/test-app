@@ -4,7 +4,7 @@
 
     <groupId>cz.cacek.test</groupId>
     <artifactId>test-app</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1ga</version>
     <packaging>jar</packaging>
 
     <name>${project.artifactId}</name>
@@ -17,7 +17,7 @@
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
 
-        <version.hazelcast>3.10-SNAPSHOT</version.hazelcast>
+        <version.hazelcast>3.9.2</version.hazelcast>
     </properties>
 
     <build>
@@ -80,4 +80,16 @@
             <url>https://repository-hazelcast-l337.forge.cloudbees.com/release/</url>
         </repository>
     </repositories>
+    
+<distributionManagement>
+  <repository>
+    <id>nexus</id>
+    <url>http://localhost:8081/nexus/content/repositories/releases</url>
+  </repository>
+  <snapshotRepository>
+    <id>nexus</id>
+    <url>http://localhost:8081/nexus/content/repositories/snapshots</url>
+  </snapshotRepository>
+</distributionManagement>
+
 </project>
