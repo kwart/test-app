@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cz.cacek.test</groupId>
-    <artifactId>test-app</artifactId>
+    <artifactId>serialization-whitelist-generator</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -34,6 +35,20 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com</pattern>
+                                    <shadedPattern>cz.cacek.shaded.com</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>javax</pattern>
+                                    <shadedPattern>cz.cacek.shaded.javax</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org</pattern>
+                                    <shadedPattern>cz.cacek.shaded.org</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <transformers>
                                 <transformer
                                     implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
@@ -49,19 +64,23 @@
     </build>
 
     <dependencies>
+    <!-- 
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-all</artifactId>
-            <!--
-            <artifactId>hazelcast-enterprise-all</artifactId>
-            -->
             <version>${version.hazelcast}</version>
         </dependency>
+     -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.clapper</groupId>
+            <artifactId>javautil</artifactId>
+            <version>3.2.0</version>
         </dependency>
     </dependencies>
 
