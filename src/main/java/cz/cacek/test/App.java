@@ -33,7 +33,6 @@ public class App {
                 HazelcastInstanceFactory.terminateAll();
             }
         }
-        time = System.currentTimeMillis() - time;
         System.out.println("Total time(ms): " + time);
     }
 }
