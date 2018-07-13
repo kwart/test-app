@@ -14,17 +14,20 @@ public class App {
     public static void main(String[] args) {
         System.out.println(System.getProperty("java.version"));
         Config config = new Config();
-        
+
         NetworkConfig networkConfig = config.getNetworkConfig();
         networkConfig.getInterfaces().addInterface("127.0.0.1");
         networkConfig.getJoin().getMulticastConfig().setEnabled(false);
         networkConfig.getJoin().getTcpIpConfig().setEnabled(true).addMember("127.0.0.1");
-        long time = System.currentTimeMillis();
+        long time = 0L;
+        long start;
         for (int i=0; i<20; i++) {
             try {
+                start = System.currentTimeMillis();
                 Hazelcast.newHazelcastInstance(config);
                 Hazelcast.newHazelcastInstance(config);
                 HazelcastClient.newHazelcastClient();
+                time += (System.currentTimeMillis() - start);
             } finally {
                 HazelcastClient.shutdownAll();
                 HazelcastInstanceFactory.terminateAll();
