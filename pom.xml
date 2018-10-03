@@ -17,7 +17,7 @@
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
 
-        <version.hazelcast>3.11-SNAPSHOT</version.hazelcast>
+        <version.hazelcast>3.10.5</version.hazelcast>
     </properties>
 
     <build>
@@ -67,14 +67,4 @@
 
     </dependencies>
 
-    <repositories>
-        <repository>
-            <id>Hazelcast Private Snapshot Repository</id>
-            <url>https://repository-hazelcast-l337.forge.cloudbees.com/snapshot/</url>
-        </repository>
-        <repository>
-            <id>Hazelcast Private Release Repository</id>
-            <url>https://repository-hazelcast-l337.forge.cloudbees.com/release/</url>
-        </repository>
-    </repositories>
 </project>
