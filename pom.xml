@@ -12,12 +12,12 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.source>1.6</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
 
-        <version.hazelcast>3.10.2</version.hazelcast>
+        <version.hazelcast>3.11-SNAPSHOT</version.hazelcast>
     </properties>
 
     <build>
@@ -57,12 +57,14 @@
             -->
             <version>${version.hazelcast}</version>
         </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <repositories>

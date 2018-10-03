@@ -1,14 +1,14 @@
 package cz.cacek.test;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+
 import org.junit.Test;
 
-/**
- * A test template.
- */
 public class AppTest {
 
     @Test
-    public void testNullToMain() {
+    public void test() throws IOException, GeneralSecurityException {
         App.main(null);
     }
 
