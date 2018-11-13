@@ -58,6 +58,11 @@
             <version>${version.hazelcast}</version>
         </dependency>
         <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-eureka-one</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
