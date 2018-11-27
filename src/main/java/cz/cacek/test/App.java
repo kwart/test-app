@@ -10,10 +10,6 @@ import com.hazelcast.instance.HazelcastInstanceFactory;
 public class App {
 
     public static void main(String[] args) {
-        try {
-            HazelcastInstance hz = Hazelcast.newHazelcastInstance();
-        } finally {
-            HazelcastInstanceFactory.terminateAll();
-        }
+
     }
 }

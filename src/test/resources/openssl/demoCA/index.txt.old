@@ -1,0 +1,5 @@
+V	191127191135Z		01	unknown	/C=CZ/O=Cacek/CN=localhost
+V	191127191136Z		02	unknown	/C=CZ/O=Cacek/CN=valid-client
+R	191127191137Z	181127191137Z	03	unknown	/C=CZ/O=Cacek/CN=revoked-client
+V	20001231235959Z		04	unknown	/C=CZ/O=Cacek/CN=expired
+V	20301231235959Z		05	unknown	/C=CZ/O=Cacek/CN=notYetValid

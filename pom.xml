@@ -51,10 +51,10 @@
     <dependencies>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
             <!--
-            <artifactId>hazelcast-enterprise-all</artifactId>
+            <artifactId>hazelcast-all</artifactId>
             -->
+            <artifactId>hazelcast-enterprise-all</artifactId>
             <version>${version.hazelcast}</version>
         </dependency>
         <dependency>
