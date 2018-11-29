@@ -23,8 +23,6 @@ import com.hazelcast.core.Member;
 import com.hazelcast.instance.HazelcastInstanceFactory;
 import com.hazelcast.nio.ssl.OpenSSLEngineFactory;
 
-import io.netty.handler.ssl.OpenSsl;
-
 /**
  * A test for TLS certificates validity handling in Hazelcast (i.e. in Java).
  */
