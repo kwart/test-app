@@ -27,7 +27,7 @@ import com.hazelcast.nio.ssl.OpenSSLEngineFactory;
  * A test for TLS certificates validity handling in Hazelcast (i.e. in Java).
  */
 @RunWith(Parameterized.class)
-public class TmpValidityTest {
+public class CASignedCertsTrustedDirectlyTest {
 
     enum OpenSslMode {
         NONE, TRUSTMANAGER, NATIVE
@@ -45,36 +45,33 @@ public class TmpValidityTest {
                 {false, OpenSslMode.NONE},
                 {false, OpenSslMode.TRUSTMANAGER},
                 {false, OpenSslMode.NATIVE},
-//                {true, OpenSslMode.NONE},
-//                {true, OpenSslMode.TRUSTMANAGER},
-//                {true, OpenSslMode.NATIVE},
+                {true, OpenSslMode.NONE},
+                {true, OpenSslMode.TRUSTMANAGER},
+                {true, OpenSslMode.NATIVE},
         });
     }
 
     @Test
-    public void testValidWithCA() {
-        testInternal(false, "localhost", 2);
+    public void testValid() {
+        testInternal("localhost", mutualAuthentication?1:2);
     }
 
     @Test
-    public void testExpiredWithCA() {
-        testInternal(false, "expired", 1);
+    public void testExpired() {
+        testInternal("expired", mutualAuthentication?1:2);
     }
 
     @Test
-    public void testNotYetValidWithCA() {
-        testInternal(false, "notYetValid", 1);
+    public void testNotYetValid() {
+        testInternal("notYetValid", mutualAuthentication?1:2);
     }
 
-    private void testInternal(boolean selfSigned, String keyStore, int expectedSize) {
+    private void testInternal(String keyStore, int expectedSize) {
         assumeOpenSslModeSupported();
         Config config = new Config();
         SSLConfig sslConfig = new SSLConfig();
-        String pathBase = "src/test/resources/";
+        String pathBase = "src/test/resources/CAsigned/";
         String trustStore = keyStore;
-        if (! selfSigned) {
-            pathBase = "src/test/resources/CAsigned/";
-        }
         if (openSslMode != OpenSslMode.NATIVE) {
             sslConfig.setEnabled(true)
                     .setProperty("keyStore", pathBase + keyStore + ".p12")
