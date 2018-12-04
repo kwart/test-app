@@ -1,19 +1,19 @@
 package cz.cacek.test;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.HazelcastInstanceFactory;
+import java.lang.reflect.Method;
+import java.security.MessageDigest;
+import java.security.Provider;
+import java.security.Security;
+import java.util.Arrays;
+
+import com.ibm.crypto.fips.provider.IBMJCEFIPS;
 
 /**
  * Hazelcast Hello world!
  */
 public class App {
 
-    public static void main(String[] args) {
-        try {
-            HazelcastInstance hz = Hazelcast.newHazelcastInstance();
-        } finally {
-            HazelcastInstanceFactory.terminateAll();
-        }
+    public static void main(String[] args) throws Exception {
+
     }
 }
