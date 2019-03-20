@@ -1,6 +1,6 @@
 # Reproducer: netty + BoringSSL + IBM Java TLS handshake issue
 
-Issue report: netty/netty-tcnative#448
+Issue report: [netty/netty-tcnative#448](https://github.com/netty/netty-tcnative/issues/448)
 
 ## Steps to reproduce
 ```
