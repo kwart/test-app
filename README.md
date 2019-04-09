@@ -1,9 +1,9 @@
-# Microbenchmark for Hazelcast ClassFilter
+# Microbenchmark for Hazelcast IBitSet
 
 ## Run the benchmark
 
 ```bash
-git clone -b deser-filtering-micro-benchmark https://github.com/kwart/test-app.git
+git clone -b ibitset-micro-benchmark https://github.com/kwart/test-app.git
 cd test-app
 
 mvn clean package

@@ -13,7 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.jmh>1.21</version.jmh>
-        <version.hazelcast>3.10</version.hazelcast>
+        <version.hazelcast>3.13-SNAPSHOT</version.hazelcast>
     </properties>
 
     <build>
@@ -76,38 +76,10 @@
             <version>${version.jmh}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast</artifactId>
+            <version>${version.hazelcast}</version>
+        </dependency>
     </dependencies>
-
-    <profiles>
-        <profile>
-            <id>original-jar</id>
-            <activation>
-                <property>
-                    <name>!patched</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.hazelcast</groupId>
-                    <artifactId>hazelcast</artifactId>
-                    <version>${version.hazelcast}</version>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>patched-jar</id>
-            <activation>
-                <property>
-                    <name>patched</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.hazelcast</groupId>
-                    <artifactId>hazelcast</artifactId>
-                    <version>${version.hazelcast}-fitering</version>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 </project>
