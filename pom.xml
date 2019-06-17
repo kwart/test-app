@@ -13,7 +13,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.jmh>1.21</version.jmh>
-        <version.hazelcast>3.13-SNAPSHOT</version.hazelcast>
+        <version.hazelcast>3.12</version.hazelcast>
     </properties>
 
     <build>
