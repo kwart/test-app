@@ -16,8 +16,6 @@
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
-
-        <version.hazelcast>3.12.1</version.hazelcast>
     </properties>
 
     <build>
@@ -51,11 +49,14 @@
     <dependencies>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
-            <!--
-            <artifactId>hazelcast-enterprise-all</artifactId>
-            -->
-            <version>${version.hazelcast}</version>
+            <artifactId>hazelcast-auditlog</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-auditlog-annotations</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -64,15 +65,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>Hazelcast Private Snapshot Repository</id>
-            <url>https://repository.hazelcast.com/snapshot/</url>
-        </repository>
-        <repository>
-            <id>Hazelcast Private Release Repository</id>
-            <url>https://repository.hazelcast.com/release/</url>
-        </repository>
-    </repositories>
 </project>
