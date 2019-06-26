@@ -6,7 +6,8 @@ package cz.cacek.test;
 public class App {
 
     public static void main(String[] args) {
-        TestAuditLogger.LOGGER.userLoggedIn("hezoun", "123.456.789.11");
-        
+        ManCenterAuditLogger.LOGGER.userLoggedIn("admin", "192.168.1.5");
+        // ...
+        ManCenterAuditLogger.LOGGER.userLoggedOut("admin");
     }
 }
