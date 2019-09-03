@@ -10,6 +10,7 @@ import com.hazelcast.instance.HazelcastInstanceFactory;
 public class App {
 
     public static void main(String[] args) {
+        System.setProperty("hazelcast.logging.type", "log4j2");
         try {
             HazelcastInstance hz = Hazelcast.newHazelcastInstance();
         } finally {
