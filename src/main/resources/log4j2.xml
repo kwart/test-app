@@ -1,16 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="ERROR">
+    <Properties>
+        <Property name="basePath">C:\\java\\hazelcast\\logs</Property>
+        <Property name="logPattern">%d{ABSOLUTE} %5p [%c{1}] %t - %m%n</Property>
+    </Properties>
+    
     <Appenders>
-        <Console name="Console" target="SYSTEM_ERR">
-            <PatternLayout pattern="%d{ABSOLUTE} %5p [%c{1}] %t - %m%n" />
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="${logPattern}" />
         </Console>
+        <RollingFile name="File" fileName="${basePath}/hazelcast.log" filePattern="${basePath}/hazelcast-%d{yyyy-MM-dd}.log">
+            <PatternLayout pattern="${logPattern}"/>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="19500KB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
     </Appenders>
     <Loggers>
         <Root level="DEBUG">
             <AppenderRef ref="Console" />
+            <AppenderRef ref="File" />
         </Root>
-<!-- 
-        <Logger name="com.hazelcast" level="ALL" />
- -->
     </Loggers>
 </Configuration>

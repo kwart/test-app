@@ -1,0 +1,44 @@
+<hazelcast xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.9.xsd"
+           xmlns="http://www.hazelcast.com/schema/config"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <properties>
+        <property name="hazelcast.phone.home.enabled">false</property>
+    </properties>
+
+    <advanced-network enabled="true">
+        <join>
+            <multicast enabled="false" />
+            <tcp-ip enabled="true"/>
+        </join>
+        
+        <!-- cluster protocol server socket -->
+        <member-server-socket-endpoint-config>
+            <port auto-increment="true" port-count="100">5701</port>
+        </member-server-socket-endpoint-config>
+        
+        <!-- server socket listening for connections from hazelcast clients -->
+        <client-server-socket-endpoint-config>
+            <port auto-increment="true" port-count="100">${hazelcast.client.port}</port>
+        </client-server-socket-endpoint-config>
+
+        <rest-server-socket-endpoint-config name="internal-server-socket">
+            <port auto-increment="false">8080</port>
+            <reuse-address>true</reuse-address>
+            <endpoint-groups>
+                <endpoint-group name="CLUSTER_READ" enabled="true"/>
+                <endpoint-group name="HEALTH_CHECK" enabled="true"/>
+                <endpoint-group name="DATA" enabled="true"/>
+            </endpoint-groups>
+        </rest-server-socket-endpoint-config>
+    </advanced-network>
+
+    <security enabled="true">
+        <client-login-modules>
+            <login-module class-name="com.hazelcast.security.impl.GssApiLoginModule" usage="REQUIRED"/>
+        </client-login-modules>
+        <client-permissions>
+            <all-permissions/>
+        </client-permissions>
+    </security>
+</hazelcast>
