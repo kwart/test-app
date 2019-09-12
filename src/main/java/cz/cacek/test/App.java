@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -46,43 +47,46 @@ public class App {
         String realm = args[1];
         System.setProperty("hazelcast.logging.type", "log4j2");
         String spn = "hazelcast/" + hostname + "@" + realm;
+        byte[] token = args.length > 2 ? Base64.getDecoder().decode(args[2]) : null;
 
-        try {
-            GSSManager manager = GSSManager.getInstance();
-            GSSContext gssContext = manager.createContext(manager.createName(spn, null), KRB5_OID, null,
-                    GSSContext.DEFAULT_LIFETIME);
-            gssContext.requestMutualAuth(false);
-            gssContext.requestConf(false);
-            gssContext.requestInteg(false);
-            byte[] token = gssContext.initSecContext(new byte[0], 0, 0);
-            if (!gssContext.isEstablished()) {
-                System.err.println("Unable to establish GSSContext by doing a single init step");
-                System.exit(1);
-            }
-            ClientConfig clientConfig = new ClientConfig();
-            clientConfig.getSecurityConfig().setCredentials(new SimpleTokenCredentials(token));
-            clientConfig.getNetworkConfig().addAddress(hostname + ":" + System.getProperty("hazelcast.client.port", "10961"));
-            final HazelcastInstance hz = HazelcastClient.newHazelcastClient(clientConfig);
-            final IMap<String, String> map = hz.getMap("data");
-            Executors.newSingleThreadExecutor().submit(() -> quitCommandListener(hz, map));
-
-            Random rand = new Random();
-            while (true) {
-                int nextSleepSec = rand.nextInt(60) + 1;
-                map.put("date", nowStr());
-                map.put("sleep", "" + nextSleepSec);
-                try {
-                    Thread.sleep(1000L * nextSleepSec);
-                } catch (InterruptedException e) {
-                    map.put("exception", e.getMessage());
+        if (token == null || token.length==0) {
+            try {
+                GSSManager manager = GSSManager.getInstance();
+                GSSContext gssContext = manager.createContext(manager.createName(spn, null), KRB5_OID, null,
+                        GSSContext.DEFAULT_LIFETIME);
+                gssContext.requestMutualAuth(false);
+                gssContext.requestConf(false);
+                gssContext.requestInteg(false);
+                token = gssContext.initSecContext(new byte[0], 0, 0);
+                if (!gssContext.isEstablished()) {
+                    System.err.println("Unable to establish GSSContext by doing a single init step");
+                    System.exit(1);
                 }
+            } catch (GSSException e) {
+                e.printStackTrace();
+                System.exit(3);
             }
-        } catch (GSSException e) {
-            e.printStackTrace();
-            System.exit(3);
-        } finally {
-            HazelcastClient.shutdownAll();
         }
+
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.getSecurityConfig().setCredentials(new SimpleTokenCredentials(token));
+        clientConfig.getNetworkConfig().addAddress(hostname + ":" + System.getProperty("hazelcast.client.port", "10961"));
+        final HazelcastInstance hz = HazelcastClient.newHazelcastClient(clientConfig);
+        final IMap<String, String> map = hz.getMap("data");
+        Executors.newSingleThreadExecutor().submit(() -> quitCommandListener(hz, map));
+
+        Random rand = new Random();
+        while (true) {
+            int nextSleepSec = rand.nextInt(60) + 1;
+            map.put("date", nowStr());
+            map.put("sleep", "" + nextSleepSec);
+            try {
+                Thread.sleep(1000L * nextSleepSec);
+            } catch (InterruptedException e) {
+                map.put("exception", e.getMessage());
+            }
+        }
+
     }
 
     private static void quitCommandListener(final HazelcastInstance hz, final IMap<String, String> map) {
