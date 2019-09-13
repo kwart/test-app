@@ -35,7 +35,11 @@
 
     <security enabled="true">
         <client-login-modules>
-            <login-module class-name="com.hazelcast.security.impl.GssApiLoginModule" usage="REQUIRED"/>
+            <login-module class-name="com.hazelcast.security.impl.GssApiLoginModule" usage="REQUIRED">
+                <properties>
+                    <property name="relaxFlagsCheck">true</property>
+                </properties>
+            </login-module>
         </client-login-modules>
         <client-permissions>
             <all-permissions/>
