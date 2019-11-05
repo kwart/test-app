@@ -50,12 +50,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
-            <!--
-            <artifactId>hazelcast-enterprise-all</artifactId>
-            -->
-            <version>${version.hazelcast}</version>
+            <groupId>com.hazelcast.jet</groupId>
+            <artifactId>hazelcast-jet</artifactId>
+            <version>3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.paho</groupId>
+            <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
