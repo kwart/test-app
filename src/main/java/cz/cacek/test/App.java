@@ -1,16 +1,11 @@
 package cz.cacek.test;
 
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Base64;
 import java.util.Locale;
 import java.util.Random;
-import java.util.concurrent.Executors;
 
 import org.ietf.jgss.GSSContext;
 import org.ietf.jgss.GSSException;
@@ -73,7 +68,6 @@ public class App {
         clientConfig.getNetworkConfig().addAddress(hostname + ":" + System.getProperty("hazelcast.client.port", "10961"));
         final HazelcastInstance hz = HazelcastClient.newHazelcastClient(clientConfig);
         final IMap<String, String> map = hz.getMap("data");
-        Executors.newSingleThreadExecutor().submit(() -> quitCommandListener(hz, map));
 
         Random rand = new Random();
         while (true) {
@@ -87,28 +81,6 @@ public class App {
             }
         }
 
-    }
-
-    private static void quitCommandListener(final HazelcastInstance hz, final IMap<String, String> map) {
-        try (ServerSocket serverSocket = new ServerSocket(9797)) {
-            while (true) {
-                try (Socket socket = serverSocket.accept();
-                        InputStreamReader isr = new InputStreamReader(socket.getInputStream())) {
-                    char ch = (char) isr.read();
-                    if ('q' == ch || 'Q' == ch) {
-                        map.put("quit", nowStr());
-                        hz.shutdown();
-                        System.exit(0);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            map.put("quit", nowStr());
-            map.put("exception", e.getMessage());
-            hz.shutdown();
-            System.exit(4);
-        }
     }
 
     private static String nowStr() {

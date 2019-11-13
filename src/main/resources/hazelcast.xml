@@ -4,6 +4,7 @@
 
     <properties>
         <property name="hazelcast.phone.home.enabled">false</property>
+        <property name="hazelcast.client.protocol.max.message.bytes">4096</property>
     </properties>
 
     <advanced-network enabled="true">
@@ -34,13 +35,20 @@
     </advanced-network>
 
     <security enabled="true">
-        <client-login-modules>
-            <login-module class-name="com.hazelcast.security.impl.GssApiLoginModule" usage="REQUIRED">
-                <properties>
-                    <property name="relaxFlagsCheck">true</property>
-                </properties>
-            </login-module>
-        </client-login-modules>
+        <realms>
+            <realm name="cr">
+                <authentication>
+                    <jaas>
+                        <login-module class-name="cz.cacek.test.GssApiLoginModule" usage="REQUIRED">
+                            <properties>
+                                <property name="relaxFlagsCheck">true</property>
+                            </properties>
+                        </login-module>
+                    </jaas>
+                </authentication>
+            </realm>
+        </realms>
+        <client-authentication realm="cr"/>
         <client-permissions>
             <all-permissions/>
         </client-permissions>
