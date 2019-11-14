@@ -73,6 +73,11 @@
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.ignite</groupId>
+            <artifactId>ignite-core</artifactId>
+            <version>2.7.6</version>
+        </dependency>
     </dependencies>
 
     <repositories>
