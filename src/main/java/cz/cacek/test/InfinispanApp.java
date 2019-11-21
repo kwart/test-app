@@ -6,7 +6,6 @@ import org.infinispan.Cache;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.DefaultCacheManager;
 
@@ -19,15 +18,17 @@ public class InfinispanApp {
         DefaultCacheManager manager1 = new DefaultCacheManager(
                 GlobalConfigurationBuilder.defaultClusteredBuilder()
 //              .clusteredDefault()
-              .transport()
+//              .transport()
 //              .nodeName("" + System.currentTimeMillis())
-              .addProperty("configurationFile", "jgroups.xml").build());
+//              .addProperty("configurationFile", "jgroups.xml")
+              .build());
         DefaultCacheManager manager2 = new DefaultCacheManager(
                 GlobalConfigurationBuilder.defaultClusteredBuilder()
 //              .clusteredDefault()
-              .transport()
+//              .transport()
 //              .nodeName("" + System.currentTimeMillis())
-              .addProperty("configurationFile", "jgroups.xml").build());
+//              .addProperty("configurationFile", "jgroups.xml")
+              .build());
 
         Configuration configuration = new ConfigurationBuilder().clustering().cacheMode(CacheMode.DIST_SYNC)
                 .build();
