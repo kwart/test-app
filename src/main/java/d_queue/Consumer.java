@@ -1,20 +1,22 @@
-package d_concurrent;
+package d_queue;
 
 import java.util.concurrent.BlockingQueue;
 
-public class Producer implements Runnable {
+public class Consumer implements Runnable {
 
     private final BlockingQueue<Message> queue;
+    private final String name;
 
-    public Producer(BlockingQueue<Message> queue) {
+    public Consumer(BlockingQueue<Message> queue, String name) {
         this.queue = queue;
+        this.name = name;
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                System.out.println(queue.take());
+                System.out.println("[" + name + "] " + queue.take());
             }
         } catch (InterruptedException e) {
             // OK

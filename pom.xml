@@ -11,42 +11,15 @@
     <url>https://github.com/kwart/test-app</url>
 
     <properties>
+        <version.hazelcast>3.12.2</version.hazelcast>
+        <version.infinispan>10.0.1.Final</version.infinispan>
+        <version.ignite>2.7.6</version.ignite>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
-        <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
-
-        <version.hazelcast>3.12.2</version.hazelcast>
     </properties>
-
-    <build>
-        <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>${exec.mainClass}</mainClass>
-                                </transformer>
-                            </transformers>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
     <dependencies>
         <dependency>
@@ -57,12 +30,17 @@
         <dependency>
             <groupId>org.apache.ignite</groupId>
             <artifactId>ignite-core</artifactId>
-            <version>2.7.6</version>
+            <version>${version.ignite}</version>
         </dependency>
         <dependency>
             <groupId>org.infinispan</groupId>
             <artifactId>infinispan-jcache</artifactId>
-            <version>10.0.1.Final</version>
+            <version>${version.infinispan}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.infinispan</groupId>
+            <artifactId>infinispan-clustered-counter</artifactId>
+            <version>${version.infinispan}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -81,15 +59,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>Hazelcast Private Snapshot Repository</id>
-            <url>https://repository.hazelcast.com/snapshot/</url>
-        </repository>
-        <repository>
-            <id>Hazelcast Private Release Repository</id>
-            <url>https://repository.hazelcast.com/release/</url>
-        </repository>
-    </repositories>
 </project>
