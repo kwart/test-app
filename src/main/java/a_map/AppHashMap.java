@@ -1,0 +1,19 @@
+package a_map;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class AppHashMap {
+
+    public static void main(String[] args) {
+        Map<String, Integer> cityInhabitants = new HashMap<>();
+
+        cityInhabitants.put("Istanbul", 15_067_724);
+        cityInhabitants.put("London", 9_126_366);
+        cityInhabitants.put("Prague", 1_308_632);
+
+        //...
+
+        System.out.println("London population: " + cityInhabitants.get("London"));
+    }
+}
