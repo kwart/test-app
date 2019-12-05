@@ -14,75 +14,25 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
-        <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
-
-        <version.hazelcast>3.12.2</version.hazelcast>
     </properties>
 
     <build>
         <finalName>${project.artifactId}</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>2.2</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>${exec.mainClass}</mainClass>
-                                </transformer>
-                            </transformers>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
     </build>
 
     <dependencies>
+        <!-- http://repo1.maven.org/maven2/javax/mail/javax.mail-api/1.5.6/javax.mail-api-1.5.6.jar -->
         <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
-            <!--
-            <artifactId>hazelcast-enterprise-all</artifactId>
-            -->
-            <version>${version.hazelcast}</version>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+            <version>1.5.6</version>
         </dependency>
+        <!-- http://repo1.maven.org/maven2/javax/mail/mail/1.4.7/mail-1.4.7.jar -->
         <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${version.junit}</version>
-            <scope>test</scope>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.7</version>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>Hazelcast Private Snapshot Repository</id>
-            <url>https://repository.hazelcast.com/snapshot/</url>
-        </repository>
-        <repository>
-            <id>Hazelcast Private Release Repository</id>
-            <url>https://repository.hazelcast.com/release/</url>
-        </repository>
-    </repositories>
 </project>
