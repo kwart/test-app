@@ -34,12 +34,7 @@
         </dependency>
         <dependency>
             <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-jcache</artifactId>
-            <version>${version.infinispan}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-clustered-counter</artifactId>
+            <artifactId>infinispan-core</artifactId>
             <version>${version.infinispan}</version>
         </dependency>
         <dependency>

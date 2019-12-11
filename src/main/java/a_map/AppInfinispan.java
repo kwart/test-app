@@ -15,19 +15,24 @@ public class AppInfinispan {
     public static void main(String[] args) throws IOException {
 
         GlobalConfiguration managerCfg = GlobalConfigurationBuilder.defaultClusteredBuilder().build();
-        try (DefaultCacheManager manager = new DefaultCacheManager(managerCfg)) {
-            Configuration configuration = new ConfigurationBuilder().clustering().cacheMode(CacheMode.DIST_SYNC).build();
+        DefaultCacheManager manager = new DefaultCacheManager(managerCfg);
+            Configuration configuration = new ConfigurationBuilder().clustering()
+                    .cacheMode(CacheMode.DIST_SYNC).build();
             manager.defineConfiguration("cityInhabitants", configuration);
 
             Map<String, Integer> cityInhabitants = manager.getCache("cityInhabitants");
 
-            cityInhabitants.put("Istanbul", 15_067_724);
-            cityInhabitants.put("London", 9_126_366);
-            cityInhabitants.put("Prague", 1_308_632);
+            if (cityInhabitants.isEmpty()) {
+                System.out.println("Initializing the cache");
+                cityInhabitants.put("Istanbul", 15_067_724);
+                cityInhabitants.put("London", 9_126_366);
+                cityInhabitants.put("Prague", 1_308_632);
+            } else {
+                System.out.println("Cache is already filled");
+            }
 
             //...
 
             System.out.println("London population: " + cityInhabitants.get("London"));
-        }
     }
 }

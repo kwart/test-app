@@ -13,9 +13,14 @@ public class AppIgnite {
             // IgniteCache interface doesn't extend java.util.Map!
             IgniteCache<String, Integer> cityInhabitants = ignite.getOrCreateCache("cityInhabitants");
 
-            cityInhabitants.put("Istanbul", 15_067_724);
-            cityInhabitants.put("London", 9_126_366);
-            cityInhabitants.put("Prague", 1_308_632);
+            if (cityInhabitants.size() == 0) {
+                System.out.println("Initializing the cache");
+                cityInhabitants.put("Istanbul", 15_067_724);
+                cityInhabitants.put("London", 9_126_366);
+                cityInhabitants.put("Prague", 1_308_632);
+            } else {
+                System.out.println("Cache is already filled");
+            }
 
             // ...
 
