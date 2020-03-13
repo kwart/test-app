@@ -14,10 +14,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
-        <exec.mainClass>cz.cacek.test.App</exec.mainClass>
+        <exec.mainClass>cz.cacek.test.Member2</exec.mainClass>
         <version.junit>4.12</version.junit>
 
-        <version.hazelcast>4.0-SNAPSHOT</version.hazelcast>
+        <version.hazelcast>4.0.1-SNAPSHOT</version.hazelcast>
     </properties>
 
     <build>
@@ -51,12 +51,23 @@
     <dependencies>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <!--
-            <artifactId>hazelcast-all</artifactId>
-            -->
+            <!-- <artifactId>hazelcast-all</artifactId> -->
             <artifactId>hazelcast-enterprise-all</artifactId>
             <version>${version.hazelcast}</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.jaaslounge/jaaslounge-decoding -->
+        <dependency>
+            <groupId>org.jaaslounge</groupId>
+            <artifactId>jaaslounge-decoding</artifactId>
+            <version>0.1.3</version>
+        </dependency>
+<!-- 
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15</artifactId>
+            <version>1.45</version>
+        </dependency>
+ -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
@@ -83,6 +94,10 @@
         <repository>
             <id>Hazelcast Private Release Repository</id>
             <url>https://repository.hazelcast.com/release/</url>
+        </repository>
+        <repository>
+            <id>OneHippo</id>
+            <url>https://maven.onehippo.com/maven2/</url>
         </repository>
     </repositories>
 </project>
