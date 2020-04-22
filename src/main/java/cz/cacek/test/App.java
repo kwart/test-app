@@ -2,7 +2,7 @@ package cz.cacek.test;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.HazelcastInstanceFactory;
+import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 
 /**
  * Hazelcast Hello world!
