@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cz.cacek.test</groupId>
-    <artifactId>test-app</artifactId>
+    <artifactId>hazelcast-client-service</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -17,7 +17,7 @@
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.12</version.junit>
 
-        <version.hazelcast>4.0.1</version.hazelcast>
+        <version.hazelcast>4.1-SNAPSHOT</version.hazelcast>
     </properties>
 
     <build>
@@ -51,10 +51,11 @@
     <dependencies>
         <dependency>
             <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
             <!--
+            <artifactId>hazelcast-all</artifactId>
             <artifactId>hazelcast-enterprise-all</artifactId>
             -->
+            <artifactId>hazelcast-enterprise</artifactId>
             <version>${version.hazelcast}</version>
         </dependency>
         <dependency>
