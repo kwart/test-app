@@ -17,11 +17,10 @@
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.13.1</version.junit>
 
-        <version.hazelcast>4.1</version.hazelcast>
     </properties>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
+        <finalName>multicast</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -50,39 +49,10 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.hazelcast</groupId>
-            <artifactId>hazelcast-all</artifactId>
-            <!--
-            <artifactId>hazelcast-enterprise-all</artifactId>
-            -->
-            <version>${version.hazelcast}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>2.13.2</version>
-        </dependency>
-        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>Hazelcast Private Snapshot Repository</id>
-            <url>https://repository.hazelcast.com/snapshot/</url>
-        </repository>
-        <repository>
-            <id>Hazelcast Private Release Repository</id>
-            <url>https://repository.hazelcast.com/release/</url>
-        </repository>
-    </repositories>
 </project>
