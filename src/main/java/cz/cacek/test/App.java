@@ -28,51 +28,35 @@ public class App {
     }
 
     final InetAddress bindAddress;
-    final boolean isLoopbackMode;
+    final Boolean loopbackModeEnabled;
     final boolean isSetInterface;
-    final boolean isSetBindAddress;
 
     final String uuid;
 
     private volatile boolean received;
 
-    public App(InetAddress bindAddress, boolean isLoopbackMode, boolean isSetInterface, boolean isSetBindAddress) {
+    public App(InetAddress bindAddress, Boolean isLoopbackMode, boolean isSetInterface) {
         this.bindAddress = bindAddress;
-        this.isLoopbackMode = isLoopbackMode;
+        this.loopbackModeEnabled = isLoopbackMode;
         this.isSetInterface = isSetInterface;
-        this.isSetBindAddress = isSetBindAddress;
         this.uuid = UUID.randomUUID().toString();
     }
 
     public static void main(String[] args) throws Exception {
-        // if (args == null || args.length != 4) {
-        // System.err.println("Unexpected number of arguments");
-        // System.err.println("Usage:");
-        // System.err.println("\tjava -jar app.jar [bindAddress] [loopbackModeEnabled] [setInterface] [setBindAddress]");
-        // System.exit(2);
-        // }
-        // InetAddress bindAddress = InetAddress.getByName(args[0]);
-        // boolean isLoopbackMode = Boolean.parseBoolean(args[1]);
-        // boolean isSetInterface = Boolean.parseBoolean(args[2]);
-        // boolean isSetBindAddress = Boolean.parseBoolean(args[3]);
-        // App app = new App(bindAddress, isLoopbackMode, isSetInterface, isSetBindAddress);
         for(NetworkInterface ni: Collections.list(NetworkInterface.getNetworkInterfaces())) {
             boolean skip = ni.isVirtual() || !ni.isUp();
             if (skip) continue;
             for (InetAddress ia: Collections.list(ni.getInetAddresses())) {
                 if (ia instanceof Inet4Address) {
-                    for (boolean loopbackMode : Arrays.asList(false, true)) {
+                    for (Boolean loopbackMode : Arrays.asList(null, false, true)) {
                         for (boolean setInterface : Arrays.asList(false, true)) {
-                            for (boolean setBindAddr : Arrays.asList(false, true)) {
-                                App app = new App(ia, loopbackMode, setInterface, setBindAddr);
-                                app.sender();
-                                System.out.println(app.received() 
-                                        + "\t" + ia.getHostAddress()
-                                        + "\t" + loopbackMode
-                                        + "\t" + setInterface
-                                        + "\t" + setBindAddr
-                                        );
-                            }
+                            App app = new App(ia, loopbackMode, setInterface);
+                            app.sender();
+                            System.out.println(app.received() 
+                                    + "\t" + ia.getHostAddress()
+                                    + "\t" + loopbackMode
+                                    + "\t" + setInterface
+                                    );
                         }
                     }
                 }
@@ -83,9 +67,11 @@ public class App {
     private MulticastSocket configureSocket() throws Exception {
         MulticastSocket multicastSocket = new MulticastSocket(null);
         multicastSocket.setReuseAddress(true);
-        multicastSocket.bind(isSetBindAddress ? new InetSocketAddress(bindAddress, PORT) : new InetSocketAddress(PORT));
+        multicastSocket.bind(new InetSocketAddress(PORT));
 
-        multicastSocket.setLoopbackMode(!isLoopbackMode);
+        if (loopbackModeEnabled != null) {
+            multicastSocket.setLoopbackMode(!loopbackModeEnabled);
+        }
         if (isSetInterface) {
             multicastSocket.setInterface(bindAddress);
         }
@@ -104,7 +90,7 @@ public class App {
                     TimeUnit.SECONDS.sleep(1);
                 }
             } catch (Exception e) {
-//                e.printStackTrace();
+                e.printStackTrace();
             }
         });
         sender.setDaemon(true);
@@ -132,8 +118,17 @@ public class App {
             }
             multicastSocket.leaveGroup(GROUP_ADDRESS);
         } catch (Exception e) {
-//            e.printStackTrace();
+            System.err.println("Receiver error in " + this);
+            e.printStackTrace();
         }
         return false;
     }
+
+    @Override
+    public String toString() {
+        return "App [bindAddress=" + bindAddress + ", loopbackModeEnabled=" + loopbackModeEnabled + ", isSetInterface="
+                + isSetInterface + "]";
+    }
+
+    
 }
