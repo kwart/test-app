@@ -1,0 +1,28 @@
+name: to-PDF
+# https://github.com/BaileyJM02/markdown-to-pdf
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '*.md'
+
+jobs:
+  converttopdf:
+    name: Build PDF
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: baileyjm02/markdown-to-pdf@v1
+        with:
+          input_dir: .
+          output_dir: pdfs
+          build_html: false
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@483c1e56f95e88835747b1c7c60581215016cbf2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: pdfs/README.pdf
+          tag: latest
+          overwrite: true
