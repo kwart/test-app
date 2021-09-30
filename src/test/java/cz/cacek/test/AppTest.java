@@ -8,7 +8,7 @@ import org.junit.Test;
 public class AppTest {
 
     @Test
-    public void testNullToMain() {
+    public void testNullToMain() throws Exception {
         App.main(null);
     }
 
