@@ -29,9 +29,11 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 
-@Mojo(name = "attribution", threadSafe = true)
+@Mojo(name = "generate", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.RUNTIME)
 public class AttributionMojo extends AbstractMojo {
 
     private static final Pattern PATTERN_COPYRIGHT = Pattern.compile("(?i)^([\\s/*]*)(((\\(c\\))|(copyright))\\s+\\S[^;{}]*$)");

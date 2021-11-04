@@ -1,28 +1,11 @@
 # attribution-maven-plugin
 
-The `attribution-maven-plugin` is a Maven Plugin that greps copyright lines from source files.
-It's intended to be used together with the `maven-dependency-plugin`.
+The `attribution-maven-plugin` is a Maven Plugin that creates author's attribution for project dependencies.
 
 Example:
 
 ```xml
 <plugins>
-    <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-            <execution>
-                <id>deps-sources</id>
-                <goals>
-                    <goal>copy-dependencies</goal>
-                </goals>
-                <phase>generate-resources</phase>
-                <configuration>
-                    <classifier>sources</classifier>
-                    <includeScope>runtime</includeScope>
-                </configuration>
-            </execution>
-        </executions>
-    </plugin>
     <plugin>
         <groupId>com.hazelcast.maven</groupId>
         <artifactId>attribution-maven-plugin</artifactId>
@@ -33,7 +16,7 @@ Example:
                 <goals>
                     <goal>attribution</goal>
                 </goals>
-                <phase>generate-resources</phase>
+                <phase>generate</phase>
             </execution>
         </executions>
     </plugin>
