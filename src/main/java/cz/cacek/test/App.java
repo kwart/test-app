@@ -5,7 +5,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.instance.impl.HazelcastInstanceFactory;
 
 /**
- * Hazelcast Hello world!
+ * The App!
  */
 public class App {
 
