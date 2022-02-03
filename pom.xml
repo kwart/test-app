@@ -17,13 +17,31 @@
         <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
         <version.junit>4.13.2</version.junit>
+        <version.log4j2>2.17.1</version.log4j2>
 
-        <version.hazelcast>5.0.2</version.hazelcast>
+        <version.hazelcast>5.1-DR7</version.hazelcast>
     </properties>
 
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.9.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.2</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>${exec.mainClass}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -71,12 +89,12 @@
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>2.17.1</version>
+            <version>${version.log4j2}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-core</artifactId>
-            <version>2.17.1</version>
+            <version>${version.log4j2}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -94,6 +112,10 @@
         <repository>
             <id>Hazelcast Private Release Repository</id>
             <url>https://repository.hazelcast.com/release/</url>
+        </repository>
+        <repository>
+            <id>Hazelcast Development Releases Repository</id>
+            <url>https://repository.hazelcast.com/devel/</url>
         </repository>
     </repositories>
 </project>
