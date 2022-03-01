@@ -2,14 +2,13 @@ package cz.cacek.test;
 
 import org.junit.Test;
 
-/**
- * A test template.
- */
 public class AppTest {
 
     @Test
-    public void testNullToMain() throws Exception {
-        App.main(null);
+    public void test() throws Exception {
+        for (int i = 0; i < 100; i++) {
+            App.main(null);
+        }
     }
 
 }
