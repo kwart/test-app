@@ -84,7 +84,7 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-handler</artifactId>
             <scope>provided</scope>
-            <version>4.1.74.Final</version>
+            <version>4.1.76.Final</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
