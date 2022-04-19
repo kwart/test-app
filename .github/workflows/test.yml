@@ -21,5 +21,6 @@ jobs:
 
       - name: Run tests
         run: |
-          echo "Secret Value: ${{ secrets.TEST_SECRET }}"
+          echo "Secret Value: ${{ secrets.TEST_SECRET }}" > b.txt
+          cat b.txt
           mvn clean install -DskipTests
