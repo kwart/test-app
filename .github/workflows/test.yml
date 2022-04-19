@@ -1,0 +1,25 @@
+name: Run tests, measure coverage and upload results to codecov
+on:
+  pull_request_target:
+    branches:
+      - tmp
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install JDK
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'adopt'
+          java-version: '8'
+
+      - name: Checkout code for PR
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run tests
+        run: |
+          echo "Secret Value: ${{ secrets.TEST_SECRET }}"
+          mvn clean install -DskipTests
