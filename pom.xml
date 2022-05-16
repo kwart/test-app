@@ -75,6 +75,17 @@
             <version>${version.hazelcast}</version>
         </dependency>
         <dependency>
+            <groupId>com.nike.riposte</groupId>
+            <artifactId>riposte-core</artifactId>
+            <version>0.20.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.nike.riposte</groupId>
+            <artifactId>riposte-spi</artifactId>
+            <version>0.20.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <scope>provided</scope>
