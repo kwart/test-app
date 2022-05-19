@@ -33,10 +33,10 @@ public class App {
             return endpoints;
         }
 
-        @Override
-        public boolean isEndpointsUseSsl() {
-            return true;
-        }
+//        @Override
+//        public boolean isEndpointsUseSsl() {
+//            return true;
+//        }
     }
 
     public static class HelloWorldEndpoint extends StandardEndpoint<Void, String> {
