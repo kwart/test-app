@@ -1,0 +1,55 @@
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.hazelcast.com/schema/config http://www.hazelcast.com/schema/config/hazelcast-config-5.1.xsd">
+
+    <lite-member enabled="false" />
+
+    <network>
+        <join>
+            <auto-detection enabled="false" />
+            <tcp-ip enabled="true" connection-timeout-seconds="5">
+                <member-list>
+                    <member>local.hazelcast.com</member>
+                </member-list>
+            </tcp-ip>
+        </join>
+        <ssl enabled="true">
+            <properties>
+                <property name="keyStore">/opt/hazelcast.p12</property>
+                <property name="keyStorePassword">Hazelcast</property>
+                <property name="keyStoreType">PKCS12</property>
+                <property name="protocol">TLS</property>
+            </properties>
+        </ssl>
+
+        <rest-api enabled="true">
+            <endpoint-group name="DATA" enabled="true" />
+        </rest-api>
+    </network>
+
+    <security enabled="true">
+        <realms>
+            <realm name="cr">
+                <authentication>
+                    <simple>
+                        <user username="jdoe" password="1234">
+                            <role>admin</role>
+                        </user>
+                        <user username="jduke" password="theduke">
+                            <role>dev</role>
+                        </user>
+                    </simple>
+                </authentication>
+            </realm>
+        </realms>
+        <client-authentication realm="cr" />
+        <client-permissions>
+            <all-permissions principal="admin" />
+            <map-permission principal="dev" name="test">
+                <actions>
+                    <action>all</action>
+                </actions>
+            </map-permission>
+        </client-permissions>
+    </security>
+</hazelcast>
