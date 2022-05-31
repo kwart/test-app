@@ -2,10 +2,17 @@ package cz.cacek.test;
 
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * The App!
+ * <pre>
+ * Before running the app, configure the TCP:
+ * 
+ * sudo su -
+ * echo 1 > /proc/sys/net/ipv4/tcp_tw_reuse
+ * echo 1024 65535 > /proc/sys/net/ipv4/ip_local_port_range
+ * </pre>
  */
 public class App {
 
@@ -37,8 +44,8 @@ public class App {
     public void run() {
         int nThreads = Integer.getInteger("client.threads", Runtime.getRuntime().availableProcessors() * 4);
         System.out.println("Starting clients for server " + serverAddresss);
-        System.out.println("Threads " + nThreads);
-        System.out.println("Print period " + printperiod);
+        System.out.println("Threads: -Dclient.threads=" + nThreads);
+        System.out.println("Print period: -Dclient.printperiod=" + printperiod);
         System.out.println();
         Thread[] threads = new Thread[nThreads];
         for (int i = 0; i < threads.length; i++) {
@@ -57,16 +64,24 @@ public class App {
 
         @Override
         public void run() {
-            while (true) {
+            long count = connectionCounter.incrementAndGet();
+            while (count < Integer.MAX_VALUE) {
                 try (Socket socket = new Socket()) {
                     socket.setReuseAddress(true);
+                    count = connectionCounter.incrementAndGet();
                     socket.connect(serverAddresss);
-                    long count = connectionCounter.incrementAndGet();
                     if (count % printperiod == 0L) {
-                        System.out.println("Count of connections established: " + count);
+                        System.out.println(LocalDateTime.now() + "Count of connections established: " + count);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+//                    System.err.println("Counter: " + count);
+//                    try {
+//                        Thread.sleep(100);
+//                    } catch (InterruptedException e1) {
+//                        e1.printStackTrace();
+//                    }
+//                    System.exit(3);
                 }
             }
         }
