@@ -18,7 +18,7 @@ public class App {
 
     final InetSocketAddress serverAddresss;
     final AtomicLong connectionCounter = new AtomicLong(0);
-    final int printperiod = Integer.getInteger("client.printperiod", 100000);
+    final int printperiod = Integer.getInteger("client.printperiod", 1000000);
 
     public App(InetSocketAddress serverAddress) {
         this.serverAddresss = serverAddress;
@@ -42,7 +42,7 @@ public class App {
     }
 
     public void run() {
-        int nThreads = Integer.getInteger("client.threads", Runtime.getRuntime().availableProcessors() * 4);
+        int nThreads = Integer.getInteger("client.threads", Runtime.getRuntime().availableProcessors() * 2);
         System.out.println("Starting clients for server " + serverAddresss);
         System.out.println("Threads: -Dclient.threads=" + nThreads);
         System.out.println("Print period: -Dclient.printperiod=" + printperiod);
@@ -71,7 +71,7 @@ public class App {
                     count = connectionCounter.incrementAndGet();
                     socket.connect(serverAddresss);
                     if (count % printperiod == 0L) {
-                        System.out.println(LocalDateTime.now() + "Count of connections established: " + count);
+                        System.out.println(LocalDateTime.now() + " Count of connections established: " + count);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
