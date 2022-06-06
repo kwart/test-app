@@ -19,6 +19,7 @@ public class App {
     final InetSocketAddress serverAddresss;
     final AtomicLong connectionCounter = new AtomicLong(0);
     final int printperiod = Integer.getInteger("client.printperiod", 1000000);
+    final long maxConnections = Long.getLong("client.maxconnections", -1L);
 
     public App(InetSocketAddress serverAddress) {
         this.serverAddresss = serverAddress;
@@ -46,6 +47,11 @@ public class App {
         System.out.println("Starting clients for server " + serverAddresss);
         System.out.println("Threads: -Dclient.threads=" + nThreads);
         System.out.println("Print period: -Dclient.printperiod=" + printperiod);
+        if (maxConnections > 0L) {
+            System.out.println("Stop the client after creating # connections: -Dclient.maxconnections=" + maxConnections);
+        } else {
+            System.out.println("Connection count is not limited. (-Dclient.maxconnections=" + maxConnections + ")");
+        }
         System.out.println();
         Thread[] threads = new Thread[nThreads];
         for (int i = 0; i < threads.length; i++) {
@@ -65,7 +71,7 @@ public class App {
         @Override
         public void run() {
             long count = connectionCounter.incrementAndGet();
-            while (count < Integer.MAX_VALUE) {
+            while (maxConnections < 0 || count < maxConnections) {
                 try (Socket socket = new Socket()) {
                     socket.setReuseAddress(true);
                     count = connectionCounter.incrementAndGet();
@@ -75,13 +81,6 @@ public class App {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-//                    System.err.println("Counter: " + count);
-//                    try {
-//                        Thread.sleep(100);
-//                    } catch (InterruptedException e1) {
-//                        e1.printStackTrace();
-//                    }
-//                    System.exit(3);
                 }
             }
         }
