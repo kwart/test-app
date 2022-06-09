@@ -1,8 +1,5 @@
 package cz.cacek.test;
 
-import static java.util.Objects.requireNonNull;
-
-import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
 import java.time.LocalDateTime;
@@ -10,8 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 import com.hazelcast.client.HazelcastClient;
-import com.hazelcast.client.config.ClientConfig;
-import com.hazelcast.client.config.XmlClientConfigBuilder;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.map.IMap;
 
@@ -22,26 +18,16 @@ public class App {
 
     private static final java.util.logging.Logger LOGGER = java.util.logging.Logger.getLogger("com.hazelcast");
 
-    private final File clientConfigFile;
 
-    public App(String fileName) {
-        clientConfigFile = new File(requireNonNull(fileName));
-        if (!clientConfigFile.isFile()) {
-            System.err.println("Unable to find the client config file " + clientConfigFile);
-            System.exit(2);
-        }
-    }
-
-    public ClientConfig clientConfig() throws IOException {
-        ClientConfig clientConfig = new XmlClientConfigBuilder(clientConfigFile).build();
-        return clientConfig;
+    public App() {
     }
 
     public HazelcastInstance createClientInstance() throws IOException {
-        return HazelcastClient.newHazelcastClient(clientConfig());
+        return HazelcastClient.newHazelcastClient();
     }
 
     public void demo() throws IOException {
+//        Hazelcast.newHazelcastInstance();
         HazelcastInstance client = createClientInstance();
         IMap<String, String> map = null;
         while (map == null) {
@@ -85,18 +71,8 @@ public class App {
     }
 
     public static void main(String[] args) throws IOException {
-        String fileName = "hazelcast-client.xml";
-        if (args.length > 1) {
-            System.err.println("Unexpected number of arguments.");
-            System.err.println();
-            System.err.println("Usage:");
-            System.err.println("\tjava -jar timestamp-client.jar [client-config.xml]");
-            System.err.println();
-            System.exit(1);
-        } else if (args.length == 1) {
-            fileName = args[0];
-        }
-        new App(fileName).demo();
+
+        new App().demo();
     }
 
     static {
