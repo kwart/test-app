@@ -106,6 +106,18 @@
 
     <repositories>
         <repository>
+            <id>snapshot-repository</id>
+            <name>Maven2 Snapshot Repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+
+        <repository>
             <id>Hazelcast Private Snapshot Repository</id>
             <url>https://repository.hazelcast.com/snapshot/</url>
         </repository>
