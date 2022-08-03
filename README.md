@@ -1,5 +1,3 @@
-# Test application
+# Toxiproxy issue #254 reproducer
 
-Java/Maven application playground.
-
-MD Syntax guide - http://markdoc.org/ref/markup
+See https://github.com/Shopify/toxiproxy/issues/254
