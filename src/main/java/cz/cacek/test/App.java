@@ -11,7 +11,7 @@ import com.hazelcast.map.IMap;
 public class App {
 
     public static void main(String[] args) {
-        System.setProperty("hazelcast.logging.type", "log4j2");
+//        System.setProperty("hazelcast.logging.type", "log4j2");
 //        System.setProperty("hazelcast.enterprise.license.key", "");
         try {
             HazelcastInstance hz = Hazelcast.newHazelcastInstance();
