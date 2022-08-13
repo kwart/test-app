@@ -3,7 +3,7 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>java9</artifactId>
+    <artifactId>java10</artifactId>
     <packaging>jar</packaging>
 
     <parent>
@@ -14,15 +14,6 @@
     </parent>
     
     <properties>
-        <maven.compiler.release>9</maven.compiler.release>
+        <maven.compiler.release>10</maven.compiler.release>
     </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <version>4.2.0</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>
