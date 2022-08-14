@@ -20,6 +20,7 @@
         <module>java8</module>
         <module>java9</module>
         <module>java10</module>
+        <module>java11</module>
     </modules>
 
     <build>
