@@ -21,6 +21,7 @@
         <module>java9</module>
         <module>java10</module>
         <module>java11</module>
+        <module>java12</module>
     </modules>
 
     <build>

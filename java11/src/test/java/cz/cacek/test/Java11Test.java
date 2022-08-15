@@ -4,8 +4,10 @@ import static java.nio.file.StandardOpenOption.CREATE;
 import static java.nio.file.StandardOpenOption.TRUNCATE_EXISTING;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -14,7 +16,12 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.SecureRandom;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PublicKey;
+import java.security.spec.NamedParameterSpec;
+import java.security.spec.XECPublicKeySpec;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
@@ -24,11 +31,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.crypto.Cipher;
+import javax.crypto.KeyAgreement;
 import javax.crypto.spec.ChaCha20ParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import cz.cacek.test.Java11Test.NestTest1.NestTest2;
+import cz.cacek.test.Java11Test.NestTest1.NestTest2.NestTest3;
 
 /**
  * Check the <a href="https://www.azul.com/blog/90-new-features-and-apis-in-jdk-11/">azul blog</a>.
@@ -88,5 +99,51 @@ public class Java11Test {
         mambo.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(keyBytes, "ChaCha20"), mamboSpec);
         byte[] encryptedResult = mambo.doFinal("pText".getBytes());
         assertArrayEquals(new byte[] { 109, -31, -119, 107, 108 }, encryptedResult);
+    }
+
+    @Test
+    // https://openjdk.org/jeps/324
+    public void keyAgreementWithNewCurves() throws Exception {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("XDH");
+        NamedParameterSpec paramSpec = new NamedParameterSpec("X25519");
+        kpg.initialize(paramSpec); // equivalent to kpg.initialize(255)
+        // alternatively: kpg = KeyPairGenerator.getInstance("X25519")
+        KeyPair kp = kpg.generateKeyPair();
+        assertNotNull(kp);
+
+        KeyFactory kf = KeyFactory.getInstance("XDH");
+        BigInteger u = new BigInteger("123456789"); // TODO
+        XECPublicKeySpec pubSpec = new XECPublicKeySpec(paramSpec, u);
+        PublicKey pubKey = kf.generatePublic(pubSpec);
+        assertNotNull(pubKey);
+
+        KeyAgreement ka = KeyAgreement.getInstance("XDH");
+        ka.init(kp.getPrivate());
+        ka.doPhase(pubKey, true);
+        byte[] secret = ka.generateSecret();
+        assertNotNull(secret);
+    }
+
+    @Test
+    // https://openjdk.org/jeps/181
+    public void nestBasedAccessControl() throws Exception {
+        assertTrue(getClass().isNestmateOf(NestTest1.class));
+        assertTrue(getClass().isNestmateOf(NestTest2.class));
+        assertTrue(getClass().isNestmateOf(NestTest3.class));
+        assertTrue(getClass().isNestmateOf(getClass()));
+        assertTrue(NestTest3.class.isNestmateOf(getClass()));
+        assertEquals(4, getClass().getNestMembers().length);
+        assertEquals(getClass(), getClass().getNestHost());
+        assertEquals(getClass(), NestTest1.class.getNestHost());
+        assertEquals(getClass(), NestTest2.class.getNestHost());
+        assertEquals(getClass(), NestTest3.class.getNestHost());
+    }
+
+    static class NestTest1 {
+        class NestTest2 {
+            class NestTest3 {
+
+            }
+        }
     }
 }
