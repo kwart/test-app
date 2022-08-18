@@ -23,29 +23,31 @@
         <module>java11</module>
         <module>java12</module>
         <module>java13</module>
+        <module>java14</module>
+        <module>java15</module>
     </modules>
 
     <build>
-    <pluginManagement>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.2</version>
-            </plugin>
-            <plugin>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.3.0</version>
-            </plugin>
-        </plugins>
-    </pluginManagement>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.10.1</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>3.2.2</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>3.3.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 
     <dependencyManagement>
@@ -75,18 +77,28 @@
                 <artifactId>junit-jupiter</artifactId>
                 <version>5.9.0</version>
             </dependency>
+            <dependency>
+                <groupId>org.hamcrest</groupId>
+                <artifactId>hamcrest-library</artifactId>
+                <version>2.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-    
+
     <dependencies>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
-        </dependency>    
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-    
-    
+
+
     <repositories>
         <repository>
             <id>snapshot-repository</id>
