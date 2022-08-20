@@ -19,19 +19,6 @@ import org.junit.jupiter.api.Test;
  */
 public class Java13Test {
 
-    @Test
-    // https://openjdk.org/jeps/355
-    @Disabled("Eclipse says Java 15.")
-    public void textBlocksPreview() throws Exception {
-        // String html = """
-        // <html>
-        // <body>
-        // <p>Hello, world</p>
-        // </body>
-        // </html>
-        // """;
-    }
-
     // JEP 350: Dynamic CDS Archive.
     // JEP 351: ZGC: Uncommit unused memory.
     // JEP 353: Reimplement the legacy Socket API
