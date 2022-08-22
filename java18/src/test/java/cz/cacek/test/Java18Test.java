@@ -4,16 +4,23 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.spi.InetAddressResolver;
+import java.net.spi.InetAddressResolverProvider;
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +57,73 @@ public class Java18Test {
         } finally {
             server.stop(0);
         }
-
-        var handler = SimpleFileServer.createFileHandler(Path.of("target").toAbsolutePath());
     }
+
+    @Test
+    // https://openjdk.org/jeps/418
+    public void internetAddressResolutionSPI() throws Exception {
+        fail("TODO");
+    }
+
+    // https://openjdk.org/jeps/413 Code snippets in JavaDoc
+
+    /**
+     * The following code shows how to use {@code Optional.isPresent}:
+     * {@snippet :
+     * if (v.isPresent()) {
+     *     System.out.println("v: " + v.get()); // @highlight substring = "println" type = "italic"
+     *     System.out.println("Hello World"); // @replace regex = '".*"' replacement = "..."
+     * }
+     * }
+     */
+    @Test
+    public void inlineSnippet() throws Exception {
+    }
+
+    /**
+     * The following code shows how to use {@code Optional.isPresent}
+     * {@snippet class = "cz.cacek.test.ShowOptional" region = "example"}
+     */
+    @Test
+    public void externalSnippetByClass() throws Exception {
+    }
+
+    /**
+     * The following code shows how to use {@code Optional.isPresent}:
+     * {@snippet file = "cz/cacek/test/ShowOptional.java" region = "example"}
+     */
+    @Test
+    public void externalSnippetByFile() throws Exception {
+    }
+
+    public static class CustomInetAddressResolver implements InetAddressResolver {
+        private static final byte[] LOOPBACK_IP = new byte[] { 127, 0, 0, 1 };
+
+        @Override
+        public Stream<InetAddress> lookupByName(String host, LookupPolicy lookupPolicy) throws UnknownHostException {
+            return Stream.of(InetAddress.getByAddress(LOOPBACK_IP));
+        }
+
+        @Override
+        public String lookupByAddress(byte[] addr) throws UnknownHostException {
+            if (Arrays.equals(LOOPBACK_IP, addr)) {
+                return "localhost";
+            } else {
+                throw new UnknownHostException("Sorry jako");
+            }
+        }
+    }
+
+    public static class CustomInetAddressResolverProvider extends InetAddressResolverProvider {
+        @Override
+        public InetAddressResolver get(InetAddressResolverProvider.Configuration configuration) {
+          return new CustomInetAddressResolver();
+        }
+
+        @Override
+        public String name() {
+          return "Custom resolver";
+        }
+      }
+
 }
