@@ -55,6 +55,15 @@
                 <module>java18</module>
             </modules>
         </profile>
+        <profile>
+            <id>java19-modules</id>
+            <activation>
+                <jdk>[19,)</jdk>
+            </activation>
+            <modules>
+                <module>java19</module>
+            </modules>
+        </profile>
     </profiles>
 
     <build>
