@@ -101,7 +101,7 @@ public class Java16Test {
         while (channel.read(readBuf) >= 0 && readBuf.hasRemaining()) {
         }
         String response = new String(readBuf.array(), UTF_8);
-        assertThat(response, containsString("Docker Engine"));
+        assertThat(response, containsString("Engine"));
     }
 
     @Test
