@@ -1,0 +1,1 @@
+# Kafka with Kerberos authentication
