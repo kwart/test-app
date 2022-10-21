@@ -29,6 +29,8 @@ services:
       - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
       - ./kafka_server.keytab:/mnt/kafka_server.keytab
       - ./krb5.conf:/etc/krb5.conf
+      - ./producer.properties:/etc/kafka/producer.properties
+      - ./consumer.properties:/etc/kafka/consumer.properties
     environment:
       KAFKA_SASL_ENABLED_MECHANISMS: GSSAPI
       KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: GSSAPI
