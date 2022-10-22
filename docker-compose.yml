@@ -63,13 +63,26 @@ services:
 
   hazelcast:
     image: hazelcast/hazelcast:5.1.4
-    hostname: hz1.kerberos.example
+    hostname: hazelcast.kerberos.example
     container_name: hazelcast
     depends_on:
       - broker
     volumes:
       - key-material:/mnt
       - ./krb5.conf:/etc/krb5.conf
+
+  management-center:
+    image: hazelcast/management-center:latest
+    hostname: management-center.kerberos.example
+    container_name: management-center
+    ports:
+    - "8080:8080"
+    environment:
+    - MC_DEFAULT_CLUSTER=dev
+    - MC_DEFAULT_CLUSTER_MEMBERS=hazelcast.kerberos.example
+    - MC_ALLOW_MULTIPLE_LOGIN=true
+    - MC_ADMIN_USER=admin
+    - MC_ADMIN_PASSWORD=hazelcast12
 
 volumes:
   key-material:
