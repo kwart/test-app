@@ -30,7 +30,6 @@ services:
     command:
       - |
         java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab kafka/broker.kerberos.example@KERBEROS.EXAMPLE kafkapwd /mnt/broker.keytab
-        java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab hz/hz1.kerberos.example@KERBEROS.EXAMPLE istanbul /mnt/hz1.keytab
         java -classpath /kerberos-server.jar com.github.kwart.kerberos.CreateKeytab jduke@KERBEROS.EXAMPLE theduke /mnt/jduke.keytab
 
   broker:
@@ -64,14 +63,13 @@ services:
 
   hazelcast:
     image: hazelcast/hazelcast:5.1.4
-    hostname: hazelcast
+    hostname: hz1.kerberos.example
     container_name: hazelcast
     depends_on:
       - broker
     volumes:
       - key-material:/mnt
       - ./krb5.conf:/etc/krb5.conf
-
 
 volumes:
   key-material:
