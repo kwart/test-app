@@ -79,3 +79,16 @@ uid: kafka
 userPassword: kafkapwd
 krb5PrincipalName: kafka/broker.kerberos.example@${realm}
 krb5KeyVersionNumber: 0
+
+dn: uid=hazelcast,ou=Services,dc=kerberos,dc=example
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: krb5principal
+objectClass: krb5kdcentry
+cn: Hazelcast
+sn: Service
+uid: hazelcast
+userPassword: istanbul
+krb5PrincipalName: hz/hz1.kerberos.example@${realm}
+krb5KeyVersionNumber: 0
