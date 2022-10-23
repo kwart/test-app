@@ -10,7 +10,7 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
 
   kerberos:
-    image: kwart/kerberos-server
+    image: kwart/kerberos-server:1.1.0
     hostname: kdc.kerberos.example
     container_name: kerberos
     volumes:
@@ -19,7 +19,7 @@ services:
     command: [ "-lp", "389", "-kp", "88", "-b", "0.0.0.0",  "/mnt/data.ldif" ]
 
   key-material-generator:
-    image: kwart/kerberos-server
+    image: kwart/kerberos-server:1.1.0
     hostname: kmg.kerberos.example
     container_name: key-material-generator
     entrypoint:
