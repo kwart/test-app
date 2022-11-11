@@ -1,5 +1,9 @@
 # Hazelcast in Nitro Enclave PoC
 
+Proof-of-Concept for running Hazelcast in AWS Nitro Enclaves.
+It uses 2 EC2 machines each holding 1 Hazelcast enclave.
+The `socat` tool is used for vsock proxying.
+
 ## vsock
 
 [vsock(7) — Linux manual page](https://man7.org/linux/man-pages/man7/vsock.7.html)
@@ -70,5 +74,5 @@ Build EIF and run enclave:
 ```
 INSTANCENR=1
 nitro-cli build-enclave --docker-dir hazelcast${INSTANCENR} --docker-uri hazelcast${INSTANCENR}:latest --output-file hazelcast${INSTANCENR}.eif
-nitro-cli run-enclave --cpu-count 2 --memory 2000 --eif-path hazelcast${INSTANCENR}.eif --enclave-cid 2${INSTANCENR} --debug-mode
+nitro-cli run-enclave --cpu-count 2 --memory 2000 --eif-path hazelcast${INSTANCENR}.eif --enclave-cid 2${INSTANCENR} --debug-mode --attach-console
 ```
