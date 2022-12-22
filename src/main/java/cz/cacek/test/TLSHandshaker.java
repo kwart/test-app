@@ -16,26 +16,29 @@ import javax.net.ssl.SSLEngineResult;
 
 public class TLSHandshaker implements Runnable {
 
+    public static volatile boolean ALLOW_APP_BUFFER_RESIZE = false;
+
     final Logger logger = Logger.getLogger(getClass().getName());
 
     final SSLEngine sslEngine;
     final ByteBuffer emptyBuffer = ByteBuffer.allocate(0);
-    final TLSExecutor tlsExecutor;
 
-    final ByteBuffer decoderAppBuffer;
+    volatile ByteBuffer decoderAppBuffer;
     final ByteBuffer decoderSrc;
 
     final ByteBuffer encoderSrcBuffer;
     final ByteBuffer encoderDst;
 
-    public TLSHandshaker(SSLEngine sslEngine, TLSExecutor tlsExecutor) {
+    public TLSHandshaker(SSLEngine sslEngine) {
         this.sslEngine = sslEngine;
-        this.tlsExecutor = tlsExecutor;
 
-        this.decoderAppBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
-        this.decoderSrc = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+        int applicationBufferSize = sslEngine.getSession().getApplicationBufferSize();
+        int packetBufferSize = sslEngine.getSession().getPacketBufferSize();
+        logger.info("SSLEngine session buffer sizes - application: " + applicationBufferSize + ", packet: " + packetBufferSize);
+        this.decoderAppBuffer = ByteBuffer.allocate(applicationBufferSize);
+        this.decoderSrc = ByteBuffer.allocate(packetBufferSize);
 
-        encoderDst = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+        encoderDst = ByteBuffer.allocate(packetBufferSize);
         upcast(encoderDst).flip();
         if (sslEngine.getUseClientMode()) {
             encoderSrcBuffer = ByteBuffer.allocate(3);
@@ -52,15 +55,21 @@ public class TLSHandshaker implements Runnable {
         try {
             for (;;) {
                 SSLEngineResult.HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
+                logger.info(
+                        (sslEngine.getUseClientMode() ? "Client" : "Server") + " handshake=" + sslEngine.getHandshakeStatus());
                 switch (handshakeStatus) {
                     case FINISHED:
                         break;
                     case NEED_TASK:
-                        tlsExecutor.executeHandshakeTasks(sslEngine);
+                        Runnable task;
+                        while ((task = sslEngine.getDelegatedTask()) != null) {
+                            task.run();
+                        }
                         return;
                     case NEED_WRAP:
                         SSLEngineResult wrapResult = sslEngine.wrap(encoderSrcBuffer, encoderDst);
                         SSLEngineResult.Status wrapResultStatus = wrapResult.getStatus();
+                        logger.info("Wrap result status: " + wrapResultStatus);
                         if (wrapResultStatus == OK) {
                             // the wrap was a success, return to the loop to check the
                             // handshake status again.
@@ -74,6 +83,7 @@ public class TLSHandshaker implements Runnable {
                     case NEED_UNWRAP:
                         SSLEngineResult unwrapResult = sslEngine.unwrap(decoderSrc, decoderAppBuffer);
                         SSLEngineResult.Status unwrapStatus = unwrapResult.getStatus();
+                        logger.info("Unwrap result status: " + unwrapStatus);
                         if (unwrapStatus == OK) {
                             // unwrapping was a success.
                             // go back to the for loop and check handshake status again
@@ -84,23 +94,31 @@ public class TLSHandshaker implements Runnable {
                             return;
                         } else if (unwrapStatus == BUFFER_UNDERFLOW) {
                             if (sslEngine.getHandshakeStatus() == NOT_HANDSHAKING) {
-                                System.err.println("BUFFER_UNDERFLOW and NOT_HANDSHAKING");
-                                // needed because of OpenSSL. OpenSSL can indicate buffer underflow,
-                                // but handshake can complete at the same time. Check causes the loop
-                                // to be retried.
+                                // handshake is done
                                 continue;
                             }
-
-                            // not enough data is available to decode the content, so lets return
-                            // and wait for more data to be received.
                             return;
+                        } else if (ALLOW_APP_BUFFER_RESIZE && unwrapStatus == BUFFER_OVERFLOW) {
+                            logger.warning("Unexpected BUFFER_OVERFLOW after the unwrap");
+                            int applicationBufferSize = sslEngine.getSession().getApplicationBufferSize();
+                            int packetBufferSize = sslEngine.getSession().getPacketBufferSize();
+                            logger.info("SSLEngine session buffer sizes - application: " + applicationBufferSize + ", packet: "
+                                    + packetBufferSize);
+                            if (decoderAppBuffer.capacity() < applicationBufferSize) {
+                                logger.warning("Resizing the appBuffer, the session size had changed!");
+                                ByteBuffer tmpBuf = ByteBuffer.allocate(applicationBufferSize);
+                                if (decoderAppBuffer.position() > 0) {
+                                    decoderAppBuffer.flip();
+                                    int count = copyBuffers(decoderAppBuffer, tmpBuf);
+                                    logger.warning("Bytes transfered to new buffer: " + count);
+                                }
+                                decoderAppBuffer = tmpBuf;
+                            }
                         } else {
                             throw new IllegalStateException("Unexpected " + unwrapResult);
                         }
                     case NOT_HANDSHAKING:
                         // TLSv1.3 allows the appdata to be sent within the handshake messages already.
-                        // These could be for instance the protocol header bytes ("HZC", "CP2", ...)
-                        // Let's place such data directly to the TLSDecoder's dst buffer.
                         if (decoderAppBuffer.position() != 0) {
                             upcast(decoderAppBuffer).flip();
                             logger.info("App buffer contains some bytes: " + UTF_8.decode(decoderAppBuffer).toString());
@@ -111,7 +129,6 @@ public class TLSHandshaker implements Runnable {
                         if (decoderSrc.hasRemaining()) {
                             logger.info("src has remaining bytes: " + decoderSrc.remaining());
                         }
-                        // wakeup the outbound pipeline to complete the handshake.
                         return;
                     default:
                         throw new IllegalStateException();
@@ -135,14 +152,20 @@ public class TLSHandshaker implements Runnable {
         }
     }
 
+    public static int copyBuffers(ByteBuffer src, ByteBuffer dst) {
+        int n = Math.min(src.remaining(), dst.remaining());
+        int srcPosition = src.position();
+        dst.put(src.array(), srcPosition, n);
+        upcast(src).position(srcPosition + n);
+        return n;
+    }
+
     @Override
     public void run() {
         try {
             handle();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            logger.info((sslEngine.getUseClientMode() ? "Client" : "Server") + " handshake=" + sslEngine.getHandshakeStatus());
         }
     }
 

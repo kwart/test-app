@@ -1,22 +1,22 @@
 package cz.cacek.test;
 
-import static io.netty.handler.ssl.SslProvider.OPENSSL;
+import static cz.cacek.test.TLSHandshaker.copyBuffers;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
 
 public class App {
 
@@ -25,41 +25,37 @@ public class App {
     public static void main(String[] args) {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF-%1$tT [%4$s] %2$s %5$s%6$s%n");
         App app = new App();
-        // interestingly, if I run with the blocking executor first, the subsequent non-blocking executor scenario finishes
-        // properly
-        // app.run(true);
-        app.run(false);
+        app.run("TLSv1.2");
+        app.run("TLSv1.3");
+        // try also workaround with applicationBuffer resize allowed
+        TLSHandshaker.ALLOW_APP_BUFFER_RESIZE = true;
+        app.run("TLSv1.3");
     }
 
-    public void run(boolean useBlockingExecutor) {
-        try (TLS client = new TLS(createSslEngine(true), createExecutor(useBlockingExecutor));
-                TLS server = new TLS(createSslEngine(false), createExecutor(useBlockingExecutor))) {
+    public void run(String protocol) {
+        try {
+            TLS client = new TLS(createSslEngine(true, protocol));
+            TLS server = new TLS(createSslEngine(false, protocol));
             long timeout = System.currentTimeMillis() + 3000L;
             while (handshaking(server) || handshaking(client)) {
                 client.handshaker.run();
-                server.handshaker.decoderSrc.put(client.handshaker.encoderDst);
+                copyBuffers(client.handshaker.encoderDst, server.handshaker.decoderSrc);
 
                 server.handshaker.run();
-                client.handshaker.decoderSrc.put(server.handshaker.encoderDst);
+                copyBuffers(server.handshaker.encoderDst, client.handshaker.decoderSrc);
                 if (System.currentTimeMillis() > timeout) {
                     throw new IllegalStateException("We're out of luck. The handshake times out.");
                 }
-                //give other threads more chances to finish
                 Thread.sleep(10);
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Handshake failed", e);
-            throw new RuntimeException(e);
         } finally {
             logger.info("Handshake finished");
-            System.out.println("***************************************************************************************");
-            System.out.println("**********   FINISHED WITH " + (useBlockingExecutor ? "" : "NON-") + "BLOCKING EXECUTOR");
-            System.out.println("***************************************************************************************");
+            System.out.println("**************************************************************************************");
+            System.out.println("******* Finished run for protocol " + protocol);
+            System.out.println("**************************************************************************************");
         }
-    }
-
-    private TLSExecutor createExecutor(boolean blocking) {
-        return blocking ? new TLSExecutorBlocking() : new TLSExecutorNonBlocking();
     }
 
     private boolean handshaking(TLS tls) {
@@ -67,45 +63,39 @@ public class App {
         return handshakeStatus != NOT_HANDSHAKING;
     }
 
-    private SSLEngine createSslEngine(boolean clientMode) throws SSLException {
+    private SSLEngine createSslEngine(boolean clientMode, String protocol) throws SSLException {
         SslContext context = createSslContext(clientMode);
         SSLEngine engine = context.newEngine(UnpooledByteBufAllocator.DEFAULT);
-        engine.setEnabledProtocols(new String[] { "TLSv1.3" });
+        engine.setEnabledProtocols(new String[] { protocol });
         engine.beginHandshake();
         return engine;
     }
 
     private SslContext createSslContext(boolean clientMode) throws SSLException {
         SslContextBuilder builder;
-        File certChain = new File("src/main/resources/server.crt");
-        File key = new File("src/main/resources/server.pem");
+        File certChain = new File("src/main/resources/fullchain.pem");
+        File key = new File("src/main/resources/privkey.pem");
         String keyPassword = null;
         if (clientMode) {
-            builder = SslContextBuilder.forClient();
-            builder.keyManager(certChain, key, keyPassword);
+            builder = SslContextBuilder.forClient().keyManager(certChain, key, keyPassword);
         } else {
             builder = SslContextBuilder.forServer(certChain, key, keyPassword);
-            builder.clientAuth(ClientAuth.NONE);
+            builder.clientAuth(ClientAuth.REQUIRE);
         }
-        builder.trustManager(new File("src/main/resources/all.crt"));
-        builder.sslProvider(OPENSSL);
+        // Use the default trust manager factory
+        builder.trustManager((TrustManagerFactory) null);
+        builder.sslProvider(SslProvider.OPENSSL);
         return builder.build();
     }
 
-    public static class TLS implements Closeable {
+    public static class TLS {
         final SSLEngine engine;
-        final TLSExecutor tlsExecutor;
         final TLSHandshaker handshaker;
 
-        public TLS(SSLEngine engine, TLSExecutor tlsExecutor) {
+        public TLS(SSLEngine engine) {
             this.engine = engine;
-            this.tlsExecutor = tlsExecutor;
-            this.handshaker = new TLSHandshaker(engine, tlsExecutor);
+            this.handshaker = new TLSHandshaker(engine);
         }
 
-        @Override
-        public void close() throws IOException {
-            tlsExecutor.shutdown();
-        }
     }
 }
