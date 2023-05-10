@@ -1,27 +1,31 @@
 package cz.cacek.test;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import com.hazelcast.map.IMap;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
 
 /**
  * The App!
  */
 public class App {
 
-    public static void main(String[] args) {
-        System.setProperty("hazelcast.logging.type", "log4j2");
-//        System.setProperty("hazelcast.enterprise.license.key", "");
-        try {
-            HazelcastInstance hz = Hazelcast.newHazelcastInstance();
-            IMap<String, String> map = hz.getMap("test");
-            map.put("key", "value");
-            if ("value".equals(hz.getMap("key"))) {
-                System.out.println("OK");
+    public static void main(String[] args) throws Exception {
+        String url = "https://seznam.cz/";
+        if (args!=null && args.length>0) {
+            url = args[0];
+        }
+        HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
+        conn.setInstanceFollowRedirects(false);
+        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.4; en-US; rv:1.9.2.2) Gecko/20100316 Firefox/3.6.2");
+        try (InputStream is = conn.getInputStream(); BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            System.out.println(conn.getHeaderFields());
+            String line;
+            while ((line = br.readLine())!=null) {
+                System.out.println(line);
             }
-        } finally {
-            HazelcastInstanceFactory.terminateAll();
         }
     }
 }
