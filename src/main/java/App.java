@@ -1,5 +1,3 @@
-package cz.cacek.test;
-
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,7 +11,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class App {
 
     public static void main(String[] args) throws Exception {
-        String url = "https://seznam.cz/";
+        String url = "https://mkyong.com/";
         if (args!=null && args.length>0) {
             url = args[0];
         }
