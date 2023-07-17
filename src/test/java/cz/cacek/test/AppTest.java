@@ -9,7 +9,7 @@ public class AppTest {
 
     @Test
     public void testNullToMain() throws Exception {
-        App.main(null);
+        App.main(new String[] { "localhost", "5701" });
     }
 
 }

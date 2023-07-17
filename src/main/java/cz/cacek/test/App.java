@@ -22,6 +22,7 @@ public class App {
             usage("Port has to be a number!");
         }
         try (Socket socket = new Socket(host, port)) {
+            socket.setSoTimeout(1000);
             try (InputStream is = socket.getInputStream(); OutputStream os = socket.getOutputStream()) {
                 os.write("HZC".getBytes(StandardCharsets.UTF_8));
                 byte[] resp = new byte[3];

@@ -1,5 +1,3 @@
-# Test application
+# Simple HZ member check
 
-Java/Maven application playground.
-
-MD Syntax guide - http://markdoc.org/ref/markup
+Sends `HZC` protocol header and reads 3 bytes of the response (if any). Prints either the response itself or an error message/code.
