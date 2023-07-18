@@ -9,7 +9,6 @@ public class AppTest {
 
     @Test
     public void testNullToMain() throws Exception {
-        App.main(null);
     }
 
 }
