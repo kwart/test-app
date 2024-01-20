@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
@@ -53,6 +54,7 @@ public class DummyHttpServer implements Runnable, AutoCloseable {
 
     public void run() {
         try (ServerSocket serverSocket = getServerSocketFactory().createServerSocket(port)) {
+            serverSocket.setSoTimeout(500);
             LOGGER.fine("Server listening");
             startSignal.countDown();
             while (!shutdown) {
@@ -62,6 +64,8 @@ public class DummyHttpServer implements Runnable, AutoCloseable {
                     br.readLine();
                     os.write(STATUS_OK);
                     os.write(content);
+                } catch (SocketTimeoutException e) {
+                    //ignore
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "", e);
                 }
@@ -87,11 +91,6 @@ public class DummyHttpServer implements Runnable, AutoCloseable {
      */
     public void close() {
         shutdown = true;
-        try {
-            getClientSocketFactory().createSocket("127.0.0.1", port).close();
-        } catch (Exception e) {
-            LOGGER.log(Level.FINE, "Problem when stopping the server", e);
-        }
     }
 
     /**
@@ -111,10 +110,6 @@ public class DummyHttpServer implements Runnable, AutoCloseable {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public SocketFactory getClientSocketFactory() {
-        return SocketFactory.getDefault();
     }
 
     protected ServerSocketFactory getServerSocketFactory() throws IOException {

@@ -32,21 +32,16 @@ import javax.net.ssl.TrustManagerFactory;
 public class DummyHttpsServer extends DummyHttpServer {
 
     private final SSLContext sslContext;
-    private final SSLContext clientSslContext;
 
     public DummyHttpsServer(int port, byte[] content) {
         super(port, content);
         try {
-            KeyStore ks = KeyStore.getInstance("PKCS12");
-            ks.load(getClass().getResourceAsStream("/expired.p12"), "123456".toCharArray());
+            KeyStore ks = KeyStore.getInstance("PKCS11");
+            ks.load(null, "pass123+".toCharArray());
             KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(ks, "123456".toCharArray());
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init(ks);
+            kmf.init(ks, "pass123+".toCharArray());
             sslContext = SSLContext.getInstance("TLSv1.2");
             sslContext.init(kmf.getKeyManagers(), null, null);
-            clientSslContext = SSLContext.getInstance("TLS");
-            clientSslContext.init(null, tmf.getTrustManagers(), null);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -62,8 +57,4 @@ public class DummyHttpsServer extends DummyHttpServer {
         return sslContext.getServerSocketFactory();
     }
 
-    @Override
-    public SSLSocketFactory getClientSocketFactory() {
-        return clientSslContext.getSocketFactory();
-    }
 }
