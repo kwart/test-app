@@ -90,7 +90,7 @@ public class DummyHttpServer implements Runnable, AutoCloseable {
      * Shuts down the server.
      */
     public void close() {
-        shutdown = true;
+//        shutdown = true;
     }
 
     /**

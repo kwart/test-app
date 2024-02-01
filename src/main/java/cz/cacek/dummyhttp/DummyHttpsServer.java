@@ -6,8 +6,6 @@ import java.security.KeyStore;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManagerFactory;
 
 /**
  * Dummy HTTPs server which uses keypair located in {@code DummyHttpsServer.keystore}.
