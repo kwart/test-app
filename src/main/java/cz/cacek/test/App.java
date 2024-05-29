@@ -17,30 +17,35 @@ import io.netty.handler.ssl.ClientAuth;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
+import io.netty.util.ReferenceCountUtil;
+import io.netty.util.ReferenceCounted;
 
 public class App {
 
-    public static final String PROTOCOL = "TLSv1.3";
+    public static final String PROTOCOL = "TLSv1.2";
+    private static final int HANDSHAKE_COUNT = 3;
+    private static final boolean USE_EXPLICIT_RELEASE = false;
 
     final Logger logger = Logger.getLogger(getClass().getName());
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws Exception {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF-%1$tT [%4$s] %2$s %5$s%6$s%n");
-        App app = new App();
-        for (int i = 0; i < 10; i++) {
-            app.run();
+        System.out.println("******* Explicit release is " + (USE_EXPLICIT_RELEASE ? "" : "NOT") + " enabled");
+        System.out.println("******* Running TLS handshakes. Count: " + HANDSHAKE_COUNT);
+        for (int i = 0; i < HANDSHAKE_COUNT; i++) {
+            new App().run();
         }
-        System.out.println("******* Sleeping 1s before GC");
-        TimeUnit.SECONDS.sleep(1);
-        System.out.println("******* Running GC");
-        System.gc();
-        System.out.println("******* Waiting for debug/heapdump/etc before the application finishes");
+        System.out.println("******* Waiting for debug/heapdump/etc");
+        long pid = ProcessHandle.current().pid();
+        System.out.println("Try:");
+        System.out.println("\tjcmd " + pid + " GC.run");
+        System.out.println("\tjcmd " + pid + " GC.class_histogram | grep OpenSslEngine");
         TimeUnit.MINUTES.sleep(60);
     }
 
     public void run() {
         try {
-            System.out.println("******* Starting handshake");
+            System.out.println(">>> Handshake starting");
             TLS client = new TLS(createSslEngine(true, PROTOCOL));
             TLS server = new TLS(createSslEngine(false, PROTOCOL));
             long timeout = System.currentTimeMillis() + 3000L;
@@ -55,11 +60,12 @@ public class App {
                 }
                 Thread.sleep(10);
             }
+            client.close();
+            server.close();
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Handshake failed", e);
         } finally {
-            logger.info("Handshake finished");
-            System.out.println("******* Finished handshake");
+            System.out.println(">>> Handshake finished");
         }
     }
 
@@ -101,5 +107,16 @@ public class App {
             this.handshaker = new TLSHandshaker(engine);
         }
 
+        public void close() {
+            if (USE_EXPLICIT_RELEASE) {
+                releaseIfNeeded((ReferenceCounted) engine);
+            }
+        }
+    }
+
+    private static void releaseIfNeeded(ReferenceCounted counted) {
+        if (counted.refCnt() > 0) {
+            ReferenceCountUtil.safeRelease(counted);
+        }
     }
 }

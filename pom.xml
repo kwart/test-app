@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cz.cacek.test</groupId>
-    <artifactId>test-app</artifactId>
+    <artifactId>openssl-engine-leak</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.sourcer.release>17</maven.sourcer.release>
+        <maven.compiler.release>17</maven.compiler.release>
         <exec.mainClass>cz.cacek.test.App</exec.mainClass>
     </properties>
 
@@ -62,6 +62,7 @@
         </plugins>
     </build>
 
+<!-- The new version. Doesn't clean up OpenSslEngine instances. -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -84,4 +85,20 @@
             <artifactId>netty-handler</artifactId>
         </dependency>
     </dependencies>
+
+<!-- The old version. Cleans up after a successfull handshake. -->
+<!--
+    <dependencies>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>2.0.15.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-handler</artifactId>
+            <version>4.1.30.Final</version>
+        </dependency>
+    </dependencies>
+-->
 </project>

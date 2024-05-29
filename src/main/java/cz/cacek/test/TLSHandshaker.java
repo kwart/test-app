@@ -34,7 +34,7 @@ public class TLSHandshaker implements Runnable {
 
         int applicationBufferSize = sslEngine.getSession().getApplicationBufferSize();
         int packetBufferSize = sslEngine.getSession().getPacketBufferSize();
-        logger.info("SSLEngine session buffer sizes - application: " + applicationBufferSize + ", packet: " + packetBufferSize);
+        logger.fine("SSLEngine session buffer sizes - application: " + applicationBufferSize + ", packet: " + packetBufferSize);
         this.decoderAppBuffer = ByteBuffer.allocate(applicationBufferSize);
         this.decoderSrc = ByteBuffer.allocate(packetBufferSize);
 
@@ -55,7 +55,7 @@ public class TLSHandshaker implements Runnable {
         try {
             for (;;) {
                 SSLEngineResult.HandshakeStatus handshakeStatus = sslEngine.getHandshakeStatus();
-                logger.info(
+                logger.fine(
                         (sslEngine.getUseClientMode() ? "Client" : "Server") + " handshake=" + sslEngine.getHandshakeStatus());
                 switch (handshakeStatus) {
                     case FINISHED:
@@ -69,7 +69,7 @@ public class TLSHandshaker implements Runnable {
                     case NEED_WRAP:
                         SSLEngineResult wrapResult = sslEngine.wrap(encoderSrcBuffer, encoderDst);
                         SSLEngineResult.Status wrapResultStatus = wrapResult.getStatus();
-                        logger.info("Wrap result status: " + wrapResultStatus);
+                        logger.fine("Wrap result status: " + wrapResultStatus);
                         if (wrapResultStatus == OK) {
                             // the wrap was a success, return to the loop to check the
                             // handshake status again.
@@ -83,7 +83,7 @@ public class TLSHandshaker implements Runnable {
                     case NEED_UNWRAP:
                         SSLEngineResult unwrapResult = sslEngine.unwrap(decoderSrc, decoderAppBuffer);
                         SSLEngineResult.Status unwrapStatus = unwrapResult.getStatus();
-                        logger.info("Unwrap result status: " + unwrapStatus);
+                        logger.fine("Unwrap result status: " + unwrapStatus);
                         if (unwrapStatus == OK) {
                             // unwrapping was a success.
                             // go back to the for loop and check handshake status again
@@ -102,7 +102,7 @@ public class TLSHandshaker implements Runnable {
                             logger.warning("Unexpected BUFFER_OVERFLOW after the unwrap");
                             int applicationBufferSize = sslEngine.getSession().getApplicationBufferSize();
                             int packetBufferSize = sslEngine.getSession().getPacketBufferSize();
-                            logger.info("SSLEngine session buffer sizes - application: " + applicationBufferSize + ", packet: "
+                            logger.fine("SSLEngine session buffer sizes - application: " + applicationBufferSize + ", packet: "
                                     + packetBufferSize);
                             if (decoderAppBuffer.capacity() < applicationBufferSize) {
                                 logger.warning("Resizing the appBuffer, the session size had changed!");
@@ -121,13 +121,13 @@ public class TLSHandshaker implements Runnable {
                         // TLSv1.3 allows the appdata to be sent within the handshake messages already.
                         if (decoderAppBuffer.position() != 0) {
                             upcast(decoderAppBuffer).flip();
-                            logger.info("App buffer contains some bytes: " + UTF_8.decode(decoderAppBuffer).toString());
+                            logger.fine("App buffer contains some bytes: " + UTF_8.decode(decoderAppBuffer).toString());
                         }
 
                         // the src buffer could contain unencrypted data not needed for the handshake
                         // this data needs to be pushed to the TLSDecoder.
                         if (decoderSrc.hasRemaining()) {
-                            logger.info("src has remaining bytes: " + decoderSrc.remaining());
+                            logger.fine("src has remaining bytes: " + decoderSrc.remaining());
                         }
                         return;
                     default:
