@@ -1,29 +1,33 @@
 # Netty-tcnative reproducer - leaking OpenSslEngine instances
 
-Issue link: https://github.com/netty/netty/issues/xxx
+**Issue link:** https://github.com/netty/netty/issues/14085
 
-Description: Instances of `io.netty.handler.ssl.OpenSslEngine` class are not released properly even when `SslProvider.OPENSSL` is used.
+**Description:** Instances of `io.netty.handler.ssl.OpenSslEngine` class are not released properly when `SslProvider.OPENSSL` is used.
 
-The reproducer emulates several TLS handshakes, executes `System.gc()` and then just waits.
+The reproducer creates several `OpenSslEngine` instances, prints the help and waits.
 
-After the handshakes finish, you can check objects on the heap:
-
-```bash
-jmap -histo <application PID> | grep io.netty.handler.ssl
+```
+******* Explicit release is NOT enabled
+******* Creating OpenSslEngine instances: 10
+******* Waiting for debug/heapdump/etc
+Try:
+    jcmd 47192 GC.run
+    jcmd 47192 GC.class_histogram | grep OpenSslEngine
 ```
 
-There shouldn't be any `OpenSslEngine` instance, but there are all of them used for handshakes.
+There shouldn't be any `OpenSslEngine` instance, but there are all of the created ones.
 
 ```bash
-$ jmap -histo 42927 | grep io.netty.handler.ssl |head -n 10
-  64:            20           2560  io.netty.handler.ssl.OpenSslEngine
-  96:            20           1440  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$DefaultOpenSslSession
- 107:            20           1280  io.netty.handler.ssl.OpenSslSessionCache$1
- 141:            20            800  io.netty.handler.ssl.DefaultOpenSslKeyMaterial
- 142:            10            800  io.netty.handler.ssl.OpenSslClientContext
- 143:            10            800  io.netty.handler.ssl.OpenSslServerContext
- 144:            20            800  io.netty.handler.ssl.util.LazyX509Certificate
- 161:            20            640  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$2
- 183:            20            480  io.netty.handler.ssl.OpenSslX509KeyManagerFactory$OpenSslKeyManagerFactorySpi$ProviderFactory$OpenSslPopulatedKeyMaterialProvider
- 184:            20            480  io.netty.handler.ssl.ReferenceCountedOpenSslContext$1
+$ jcmd 47192 GC.run
+47192:
+Command executed successfully
+
+$ jcmd 47192 GC.class_histogram | grep OpenSslEngine
+ 142:            10           1280  io.netty.handler.ssl.OpenSslEngine
+ 182:            10            720  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$DefaultOpenSslSession
+ 262:            10            320  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$2
+ 294:            10            240  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$1
+ 339:            10            160  io.netty.handler.ssl.ReferenceCountedOpenSslContext$DefaultOpenSslEngineMap
+ 408:             4             96  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$HandshakeState
+ 577:             1             32  [Lio.netty.handler.ssl.ReferenceCountedOpenSslEngine$HandshakeState;
 ```
