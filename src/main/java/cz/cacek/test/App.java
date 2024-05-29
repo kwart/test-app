@@ -4,13 +4,13 @@ import static cz.cacek.test.TLSHandshaker.copyBuffers;
 import static javax.net.ssl.SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult.HandshakeStatus;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.TrustManagerFactory;
 
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.handler.ssl.ClientAuth;
@@ -20,22 +20,29 @@ import io.netty.handler.ssl.SslProvider;
 
 public class App {
 
+    public static final String PROTOCOL = "TLSv1.3";
+
     final Logger logger = Logger.getLogger(getClass().getName());
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         System.setProperty("java.util.logging.SimpleFormatter.format", "%1$tF-%1$tT [%4$s] %2$s %5$s%6$s%n");
         App app = new App();
-        app.run("TLSv1.2");
-        app.run("TLSv1.3");
-        // try also workaround with applicationBuffer resize allowed
-        TLSHandshaker.ALLOW_APP_BUFFER_RESIZE = true;
-        app.run("TLSv1.3");
+        for (int i = 0; i < 10; i++) {
+            app.run();
+        }
+        System.out.println("******* Sleeping 1s before GC");
+        TimeUnit.SECONDS.sleep(1);
+        System.out.println("******* Running GC");
+        System.gc();
+        System.out.println("******* Waiting for debug/heapdump/etc before the application finishes");
+        TimeUnit.MINUTES.sleep(60);
     }
 
-    public void run(String protocol) {
+    public void run() {
         try {
-            TLS client = new TLS(createSslEngine(true, protocol));
-            TLS server = new TLS(createSslEngine(false, protocol));
+            System.out.println("******* Starting handshake");
+            TLS client = new TLS(createSslEngine(true, PROTOCOL));
+            TLS server = new TLS(createSslEngine(false, PROTOCOL));
             long timeout = System.currentTimeMillis() + 3000L;
             while (handshaking(server) || handshaking(client)) {
                 client.handshaker.run();
@@ -52,9 +59,7 @@ public class App {
             logger.log(Level.SEVERE, "Handshake failed", e);
         } finally {
             logger.info("Handshake finished");
-            System.out.println("**************************************************************************************");
-            System.out.println("******* Finished run for protocol " + protocol);
-            System.out.println("**************************************************************************************");
+            System.out.println("******* Finished handshake");
         }
     }
 
@@ -73,8 +78,8 @@ public class App {
 
     private SslContext createSslContext(boolean clientMode) throws SSLException {
         SslContextBuilder builder;
-        File certChain = new File("src/main/resources/fullchain.pem");
-        File key = new File("src/main/resources/privkey.pem");
+        File certChain = new File("localhost-cert.pem");
+        File key = new File("localhost-key.pem");
         String keyPassword = null;
         if (clientMode) {
             builder = SslContextBuilder.forClient().keyManager(certChain, key, keyPassword);
@@ -82,8 +87,7 @@ public class App {
             builder = SslContextBuilder.forServer(certChain, key, keyPassword);
             builder.clientAuth(ClientAuth.REQUIRE);
         }
-        // Use the default trust manager factory
-        builder.trustManager((TrustManagerFactory) null);
+        builder.trustManager(new File("ca-cert.pem"));
         builder.sslProvider(SslProvider.OPENSSL);
         return builder.build();
     }

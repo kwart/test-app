@@ -1,173 +1,29 @@
-# Netty-tcnative reproducer - TLSv1.3 handshake issue (netty/netty#13073)
+# Netty-tcnative reproducer - leaking OpenSslEngine instances
 
-Issue link: https://github.com/netty/netty/issues/13073
+Issue link: https://github.com/netty/netty/issues/xxx
 
-OpenSSL / TLS 1.3 handshake fails to complete when mutual authentication is enabled and the default `TrustManagerFactory` is used.
+Description: Instances of `io.netty.handler.ssl.OpenSslEngine` class are not released properly even when `SslProvider.OPENSSL` is used.
 
-With this configuration client's `SSLEngine` reports `BUFFER_OVERFLOW`for the `unwrap()` operation and
-the value of `SSLSession.getApllicationBufferSize()` got increased.
+The reproducer emulates several TLS handshakes, executes `System.gc()` and then just waits.
 
-Even if we try to increase the size of the application buffer, there is subsequent issue with `BUFFER_UNDERFLOW` for `wrap()` operation.
+After the handshakes finish, you can check objects on the heap:
 
-## Handshake progress - sample output from the reproducer
-
-### TLSv1.3 without resizing application buffer
-
-```
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_WRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_TASK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: BUFFER_OVERFLOW
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_OVERFLOW
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:54:25 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_OVERFLOW
-...
+```bash
+jmap -histo <application PID> | grep io.netty.handler.ssl
 ```
 
-### TLSv1.3 with resizing application buffer
+There shouldn't be any `OpenSslEngine` instance, but there are all of them used for handshakes.
 
-After the application buffer resize it wrongly expects more application data on client's input.
-
-```
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_WRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_TASK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: BUFFER_OVERFLOW
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_OVERFLOW
-2022-12-22-12:16:57 [WARNING] cz.cacek.test.TLSHandshaker handle Unexpected BUFFER_OVERFLOW after the unwrap
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle SSLEngine session buffer sizes - application: 33344, packet: 16389
-2022-12-22-12:16:57 [WARNING] cz.cacek.test.TLSHandshaker handle Resizing the appBuffer, the session size had changed!
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle src has remaining bytes: 16256
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-12:16:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-```
-
-### TLSv1.2 output
-
-Correct output with properly finishing TLS handshake:
-
-```
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_WRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_TASK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: BUFFER_OVERFLOW
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:57 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_TASK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_TASK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_WRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_TASK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NEED_WRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Wrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NOT_HANDSHAKING
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: OK
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NEED_UNWRAP
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Unwrap result status: BUFFER_UNDERFLOW
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Client handshake=NOT_HANDSHAKING
-2022-12-22-11:53:58 [INFO] cz.cacek.test.TLSHandshaker handle Server handshake=NOT_HANDSHAKING
+```bash
+$ jmap -histo 42927 | grep io.netty.handler.ssl |head -n 10
+  64:            20           2560  io.netty.handler.ssl.OpenSslEngine
+  96:            20           1440  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$DefaultOpenSslSession
+ 107:            20           1280  io.netty.handler.ssl.OpenSslSessionCache$1
+ 141:            20            800  io.netty.handler.ssl.DefaultOpenSslKeyMaterial
+ 142:            10            800  io.netty.handler.ssl.OpenSslClientContext
+ 143:            10            800  io.netty.handler.ssl.OpenSslServerContext
+ 144:            20            800  io.netty.handler.ssl.util.LazyX509Certificate
+ 161:            20            640  io.netty.handler.ssl.ReferenceCountedOpenSslEngine$2
+ 183:            20            480  io.netty.handler.ssl.OpenSslX509KeyManagerFactory$OpenSslKeyManagerFactorySpi$ProviderFactory$OpenSslPopulatedKeyMaterialProvider
+ 184:            20            480  io.netty.handler.ssl.ReferenceCountedOpenSslContext$1
 ```
