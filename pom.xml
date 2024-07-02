@@ -117,6 +117,10 @@
         </repository>
 
         <repository>
+            <id>snapshot-internal</id>
+            <url>https://repository.hazelcast.com/snapshot-internal/</url>
+        </repository>
+        <repository>
             <id>Hazelcast Private Snapshot Repository</id>
             <url>https://repository.hazelcast.com/snapshot/</url>
         </repository>
