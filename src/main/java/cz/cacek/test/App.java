@@ -1,27 +1,45 @@
 package cz.cacek.test;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.instance.impl.HazelcastInstanceFactory;
-import com.hazelcast.map.IMap;
+import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.PdfPKCS7;
+import com.lowagie.text.pdf.PdfReader;
+import org.bouncycastle.tsp.TimeStampToken;
 
-/**
- * The App!
- */
+import java.util.List;
+
 public class App {
 
     public static void main(String[] args) {
-        System.setProperty("hazelcast.logging.type", "log4j2");
-//        System.setProperty("hazelcast.enterprise.license.key", "");
-        try {
-            HazelcastInstance hz = Hazelcast.newHazelcastInstance();
-            IMap<String, String> map = hz.getMap("test");
-            map.put("key", "value");
-            if ("value".equals(hz.getMap("key"))) {
-                System.out.println("OK");
+        if (args == null || args.length < 1) {
+            System.err.println("Provide PDF file-name(s) as argument(s)");
+        }
+        for (String pdfName : args) {
+            System.out.println("PDF file: " + pdfName);
+            try (PdfReader pr = new PdfReader(pdfName)) {
+                AcroFields tmpAcroFields = pr.getAcroFields();
+                List<String> tmpNames = tmpAcroFields.getSignedFieldNames();
+                final int lastSignatureIdx = tmpNames.size() - 1;
+                if (lastSignatureIdx < 0) {
+                    System.out.println("No signature.");
+                    return;
+                }
+                String name = tmpNames.get(lastSignatureIdx);
+                PdfPKCS7 pk = tmpAcroFields.verifySignature(name);
+                System.out.println("Signer: " + pk.getSigningCertificate()
+                        .getSubjectX500Principal()
+                        .getName());
+                TimeStampToken tst = pk.getTimeStampToken();
+                if (tst == null) {
+                    System.out.println("No timestamp.");
+                    return;
+                }
+                System.out.println("Timestamp: " + tst.getTimeStampInfo()
+                        .getGenTime());
+                System.out.println();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } finally {
-            HazelcastInstanceFactory.terminateAll();
         }
     }
+
 }
