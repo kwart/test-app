@@ -34,13 +34,18 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.Query;
 import org.apache.maven.index.ArtifactInfo;
+import org.apache.maven.index.Field;
 import org.apache.maven.index.FlatSearchRequest;
 import org.apache.maven.index.FlatSearchResponse;
 import org.apache.maven.index.Indexer;
+import org.apache.maven.index.MAVEN;
 import org.apache.maven.index.context.IndexCreator;
 import org.apache.maven.index.context.IndexingContext;
+import org.apache.maven.index.expr.SourcedSearchExpression;
 import org.apache.maven.index.updater.IndexUpdateRequest;
 import org.apache.maven.index.updater.IndexUpdateResult;
 import org.apache.maven.index.updater.IndexUpdater;
@@ -109,13 +114,13 @@ public class LastModifiedIdx {
         Instant start = Instant.now();
         // construct the filter
         long twoWeeksAgo = start.minus(14, ChronoUnit.DAYS).toEpochMilli();
-        Query query = LongPoint.newRangeQuery("m2", twoWeeksAgo, Long.MAX_VALUE);
+//        Query query = LongPoint.newRangeQuery("m2", twoWeeksAgo, Long.MAX_VALUE);
 
-//        BooleanQuery query = new BooleanQuery.Builder()
-//                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
-//                .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)), Occur.MUST_NOT)
-//                .add(LongPoint.newRangeQuery("m2", twoWeeksAgo, Long.MAX_VALUE))
-//                .build();
+        BooleanQuery query = new BooleanQuery.Builder()
+                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
+                .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)), Occur.MUST_NOT)
+                .add(LongPoint.newRangeQuery("m2", twoWeeksAgo, Long.MAX_VALUE), Occur.MUST)
+                .build();
 
 
         FlatSearchResponse response = indexer.searchFlat(new FlatSearchRequest(query, centralContext));
