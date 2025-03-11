@@ -1,9 +1,10 @@
 bin/
+.idea/
 target/
 .classpath
 .project
 .settings
 dependency-reduced-pom.xml
 
-central-index/
-central-cache/
+central-index*
+central-cache*

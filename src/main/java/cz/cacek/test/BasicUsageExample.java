@@ -47,6 +47,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiBits;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -147,6 +148,37 @@ public class BasicUsageExample {
         System.out.println("===========");
         System.out.println();
 
+        Instant start = Instant.now();
+        // construct the filter
+        long twoWeeksAgo = start.minus(14, ChronoUnit.DAYS).toEpochMilli();
+
+        BooleanQuery query = new BooleanQuery.Builder()
+                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
+                .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)), Occur.MUST_NOT)
+                .build();
+
+        final ArtifactInfoFilter modFilter = (ctx, ai) -> ai.getLastModified() > twoWeeksAgo;
+        final IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(centralContext),
+                modFilter);
+        final IteratorSearchResponse response = indexer.searchIterator(request);
+        long count = 0L;
+        for (ArtifactInfo ai : response) {
+//            System.out.println(ai.toString());
+            count++;
+        }
+        long secondsDiff = Duration.between(start, Instant.now()).getSeconds();
+        System.out.println("------");
+        System.out.println("Total response size: " + response.getTotalHitsCount());
+        System.out.println("Count: " + count);
+        System.out.println("Total artifacts changed in last 2 weeks: " + response.getTotalHitsCount());
+        System.out.println("Search took " + secondsDiff + " seconds");
+        System.out.println();
+
+        // close cleanly
+        indexer.closeIndexingContext(centralContext, false);
+    }
+
+    public void dummy() throws IOException, InvalidVersionSpecificationException {
         // ====
         // Case:
         // dump all the GAVs
@@ -254,34 +286,6 @@ public class BasicUsageExample {
                     indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("maven-archetype")), new GAGrouping());
 
         }
-
-        Instant start = Instant.now();
-        BooleanQuery query = new BooleanQuery.Builder()
-                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
-                .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)), Occur.MUST_NOT)
-                .build();
-
-        // construct the filter
-        long twoWeeksAgo = Instant.now().minus(14, ChronoUnit.DAYS).toEpochMilli();
-        final ArtifactInfoFilter modFilter = (ctx, ai) -> ai.getLastModified() > twoWeeksAgo;
-        final IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(centralContext),
-                modFilter);
-        final IteratorSearchResponse response = indexer.searchIterator(request);
-        long count =0l;
-        for (ArtifactInfo ai : response) {
-//            System.out.println(ai.toString());
-            count++;
-        }
-        long secondsDiff = Duration.between(start, Instant.now()).getSeconds();
-        System.out.println("------");
-        System.out.println("Total response size: " + response.getTotalHitsCount());
-        System.out.println("Count: " + count);
-        System.out.println("Total artifacts changed in last 2 weeks: " + response.getTotalHitsCount());
-        System.out.println("Search took " + secondsDiff + " seconds");
-        System.out.println();
-
-        // close cleanly
-        indexer.closeIndexingContext(centralContext, false);
     }
 
     public void searchArtifactsChangedInLastTwoWeeks() throws IOException {
@@ -397,34 +401,5 @@ public class BasicUsageExample {
         System.out.println();
     }
 
-    private static class Java11HttpClient implements ResourceFetcher {
-        private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
-
-        private URI uri;
-
-        @Override
-        public void connect(String id, String url) throws IOException {
-            this.uri = URI.create(url + "/");
-        }
-
-        @Override
-        public void disconnect() throws IOException {
-        }
-
-        @Override
-        public InputStream retrieve(String name) throws IOException, FileNotFoundException {
-            HttpRequest request = HttpRequest.newBuilder().uri(uri.resolve(name)).GET().build();
-            try {
-                HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-                if (response.statusCode() == HttpURLConnection.HTTP_OK) {
-                    return response.body();
-                } else {
-                    throw new IOException("Unexpected response: " + response);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new IOException(e);
-            }
-        }
-    }
+ 
 }
