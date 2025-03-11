@@ -31,11 +31,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -110,43 +115,32 @@ public class BasicUsageExample {
         indexers.add(requireNonNull(indexCreators.get("maven-plugin")));
 
         // Create context for central repository index
-        centralContext = indexer.createIndexingContext(
-                "central-context",
-                "central",
-                centralLocalCache,
-                centralIndexDir,
-                "https://repo1.maven.org/maven2",
-                null,
-                true,
-                true,
-                indexers);
+        centralContext = indexer.createIndexingContext("central-context", "central", centralLocalCache, centralIndexDir,
+                "https://repo1.maven.org/maven2", null, true, true, indexers);
 
         // Update the index (incremental update will happen if this is not 1st run and files are not deleted)
         // This whole block below should not be executed on every app start, but rather controlled by some configuration
         // since this block will always emit at least one HTTP GET. Central indexes are updated once a week, but
         // other index sources might have different index publishing frequency.
         // Preferred frequency is once a week.
-        if (true) {
-            Instant updateStart = Instant.now();
-            System.out.println("Updating Index...");
-            System.out.println("This might take a while on first run, so please be patient!");
+        Instant updateStart = Instant.now();
+        System.out.println("Updating Index...");
+        System.out.println("This might take a while on first run, so please be patient!");
 
-            Date centralContextCurrentTimestamp = centralContext.getTimestamp();
-            IndexUpdateRequest updateRequest = new IndexUpdateRequest(centralContext, new Java11HttpClient());
-            IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
-            if (updateResult.isFullUpdate()) {
-                System.out.println("Full update happened!");
-            } else if (updateResult.getTimestamp().equals(centralContextCurrentTimestamp)) {
-                System.out.println("No update needed, index is up to date!");
-            } else {
-                System.out.println("Incremental update happened, change covered " + centralContextCurrentTimestamp
-                        + " - " + updateResult.getTimestamp() + " period.");
-            }
-
-            System.out.println("Finished in "
-                    + Duration.between(updateStart, Instant.now()).getSeconds() + " sec");
-            System.out.println();
+        Date centralContextCurrentTimestamp = centralContext.getTimestamp();
+        IndexUpdateRequest updateRequest = new IndexUpdateRequest(centralContext, new Java11HttpClient());
+        IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
+        if (updateResult.isFullUpdate()) {
+            System.out.println("Full update happened!");
+        } else if (updateResult.getTimestamp().equals(centralContextCurrentTimestamp)) {
+            System.out.println("No update needed, index is up to date!");
+        } else {
+            System.out.println("Incremental update happened, change covered " + centralContextCurrentTimestamp + " - "
+                    + updateResult.getTimestamp() + " period.");
         }
+
+        System.out.println("Finished in " + Duration.between(updateStart, Instant.now()).getSeconds() + " sec");
+        System.out.println();
 
         System.out.println();
         System.out.println("Using index");
@@ -176,110 +170,181 @@ public class BasicUsageExample {
             }
         }
 
-        // ====
-        // Case:
-        // Search for all GAVs with known G and A and having version greater than V
+        if (false) {
+            // ====
+            // Case:
+            // Search for all GAVs with known G and A and having version greater than V
 
-        final GenericVersionScheme versionScheme = new GenericVersionScheme();
-        final String versionString = "3.1.0";
-        final Version version = versionScheme.parseVersion(versionString);
+            final GenericVersionScheme versionScheme = new GenericVersionScheme();
+            final String versionString = "3.1.0";
+            final Version version = versionScheme.parseVersion(versionString);
 
-        // construct the query for known GA
-        final Query groupIdQ = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression("org.apache.maven"));
-        final Query artifactIdQ =
-                indexer.constructQuery(MAVEN.ARTIFACT_ID, new SourcedSearchExpression("maven-plugin-api"));
+            // construct the query for known GA
+            final Query groupIdQ = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression("org.apache.maven"));
+            final Query artifactIdQ = indexer.constructQuery(MAVEN.ARTIFACT_ID,
+                    new SourcedSearchExpression("maven-plugin-api"));
 
-        final BooleanQuery query = new BooleanQuery.Builder()
-                .add(groupIdQ, Occur.MUST)
-                .add(artifactIdQ, Occur.MUST)
-                // we want "jar" artifacts only
-                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
-                // we want main artifacts only (no classifier)
-                // Note: this below is unfinished API, needs fixing
-                .add(
-                        indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)),
-                        Occur.MUST_NOT)
-                .build();
+            final BooleanQuery query = new BooleanQuery.Builder().add(groupIdQ, Occur.MUST).add(artifactIdQ, Occur.MUST)
+                    // we want "jar" artifacts only
+                    .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
+                    // we want main artifacts only (no classifier)
+                    // Note: this below is unfinished API, needs fixing
+                    .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)),
+                            Occur.MUST_NOT)
+                    .build();
 
-        // construct the filter to express "V greater than"
-        final ArtifactInfoFilter versionFilter = (ctx, ai) -> {
-            try {
-                final Version aiV = versionScheme.parseVersion(ai.getVersion());
-                // Use ">=" if you are INCLUSIVE
-                return aiV.compareTo(version) > 0;
-            } catch (InvalidVersionSpecificationException e) {
-                // do something here? be safe and include?
-                return true;
+            // construct the filter to express "V greater than"
+            final ArtifactInfoFilter versionFilter = (ctx, ai) -> {
+                try {
+                    final Version aiV = versionScheme.parseVersion(ai.getVersion());
+                    // Use ">=" if you are INCLUSIVE
+                    return aiV.compareTo(version) > 0;
+                } catch (InvalidVersionSpecificationException e) {
+                    // do something here? be safe and include?
+                    return true;
+                }
+            };
+
+            System.out.println("Searching for all GAVs with org.apache.maven:maven-plugin-api having V greater than 3.1.0");
+            final IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(centralContext),
+                    versionFilter);
+            final IteratorSearchResponse response = indexer.searchIterator(request);
+            for (ArtifactInfo ai : response) {
+                System.out.println(ai.toString());
             }
-        };
 
-        System.out.println("Searching for all GAVs with org.apache.maven:maven-plugin-api having V greater than 3.1.0");
-        final IteratorSearchRequest request =
-                new IteratorSearchRequest(query, Collections.singletonList(centralContext), versionFilter);
-        final IteratorSearchResponse response = indexer.searchIterator(request);
-        for (ArtifactInfo ai : response) {
-            System.out.println(ai.toString());
+            // Case:
+            // Use index
+            // Searching for some artifact
+            Query gidQ = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression("org.apache.maven.indexer"));
+            Query aidQ = indexer.constructQuery(MAVEN.ARTIFACT_ID, new SourcedSearchExpression("indexer-core"));
+
+            BooleanQuery bq = new BooleanQuery.Builder().add(gidQ, Occur.MUST).add(aidQ, Occur.MUST).build();
+
+            searchAndDump(indexer, "all artifacts under GA org.apache.maven.indexer:indexer-core", bq);
+
+            // Searching for some main artifact
+            bq = new BooleanQuery.Builder().add(gidQ, Occur.MUST).add(aidQ, Occur.MUST)
+                    .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression("*")), Occur.MUST_NOT).build();
+
+            searchAndDump(indexer, "main artifacts under GA org.apache.maven.indexer:indexer-core", bq);
+
+            // doing sha1 search
+            searchAndDump(indexer, "SHA1 7ab67e6b20e5332a7fb4fdf2f019aec4275846c2", indexer.constructQuery(MAVEN.SHA1,
+                    new SourcedSearchExpression("7ab67e6b20e5332a7fb4fdf2f019aec4275846c2")));
+
+            searchAndDump(indexer, "SHA1 7ab67e6b20 (partial hash)",
+                    indexer.constructQuery(MAVEN.SHA1, new UserInputSearchExpression("7ab67e6b20")));
+
+            // doing classname search (incomplete classname)
+            searchAndDump(indexer, "classname DefaultNexusIndexer (note: Central does not publish classes in the index)",
+                    indexer.constructQuery(MAVEN.CLASSNAMES, new UserInputSearchExpression("DefaultNexusIndexer")));
+
+            // doing search for all "canonical" maven plugins latest versions
+            bq = new BooleanQuery.Builder()
+                    .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("maven-plugin")), Occur.MUST)
+                    .add(indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression("org.apache.maven.plugins")),
+                            Occur.MUST)
+                    .build();
+
+            searchGroupedAndDumpFlat(indexer, "all \"canonical\" maven plugins", bq, new GAGrouping());
+
+            // doing search for all archetypes latest versions
+            searchGroupedAndDump(indexer, "all maven archetypes (latest versions)",
+                    indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("maven-archetype")), new GAGrouping());
+
         }
 
-        // Case:
-        // Use index
-        // Searching for some artifact
-        Query gidQ = indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression("org.apache.maven.indexer"));
-        Query aidQ = indexer.constructQuery(MAVEN.ARTIFACT_ID, new SourcedSearchExpression("indexer-core"));
-
-        BooleanQuery bq = new BooleanQuery.Builder()
-                .add(gidQ, Occur.MUST)
-                .add(aidQ, Occur.MUST)
+        Instant start = Instant.now();
+        BooleanQuery query = new BooleanQuery.Builder()
+                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("jar")), Occur.MUST)
+                .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)), Occur.MUST_NOT)
                 .build();
 
-        searchAndDump(indexer, "all artifacts under GA org.apache.maven.indexer:indexer-core", bq);
-
-        // Searching for some main artifact
-        bq = new BooleanQuery.Builder()
-                .add(gidQ, Occur.MUST)
-                .add(aidQ, Occur.MUST)
-                .add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression("*")), Occur.MUST_NOT)
-                .build();
-
-        searchAndDump(indexer, "main artifacts under GA org.apache.maven.indexer:indexer-core", bq);
-
-        // doing sha1 search
-        searchAndDump(
-                indexer,
-                "SHA1 7ab67e6b20e5332a7fb4fdf2f019aec4275846c2",
-                indexer.constructQuery(
-                        MAVEN.SHA1, new SourcedSearchExpression("7ab67e6b20e5332a7fb4fdf2f019aec4275846c2")));
-
-        searchAndDump(
-                indexer,
-                "SHA1 7ab67e6b20 (partial hash)",
-                indexer.constructQuery(MAVEN.SHA1, new UserInputSearchExpression("7ab67e6b20")));
-
-        // doing classname search (incomplete classname)
-        searchAndDump(
-                indexer,
-                "classname DefaultNexusIndexer (note: Central does not publish classes in the index)",
-                indexer.constructQuery(MAVEN.CLASSNAMES, new UserInputSearchExpression("DefaultNexusIndexer")));
-
-        // doing search for all "canonical" maven plugins latest versions
-        bq = new BooleanQuery.Builder()
-                .add(indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("maven-plugin")), Occur.MUST)
-                .add(
-                        indexer.constructQuery(MAVEN.GROUP_ID, new SourcedSearchExpression("org.apache.maven.plugins")),
-                        Occur.MUST)
-                .build();
-
-        searchGroupedAndDumpFlat(indexer, "all \"canonical\" maven plugins", bq, new GAGrouping());
-
-        // doing search for all archetypes latest versions
-        searchGroupedAndDump(
-                indexer,
-                "all maven archetypes (latest versions)",
-                indexer.constructQuery(MAVEN.PACKAGING, new SourcedSearchExpression("maven-archetype")),
-                new GAGrouping());
+        // construct the filter
+        long twoWeeksAgo = Instant.now().minus(14, ChronoUnit.DAYS).toEpochMilli();
+        final ArtifactInfoFilter modFilter = (ctx, ai) -> ai.getLastModified() > twoWeeksAgo;
+        final IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(centralContext),
+                modFilter);
+        final IteratorSearchResponse response = indexer.searchIterator(request);
+        long count =0l;
+        for (ArtifactInfo ai : response) {
+//            System.out.println(ai.toString());
+            count++;
+        }
+        long secondsDiff = Duration.between(start, Instant.now()).getSeconds();
+        System.out.println("------");
+        System.out.println("Total response size: " + response.getTotalHitsCount());
+        System.out.println("Count: " + count);
+        System.out.println("Total artifacts changed in last 2 weeks: " + response.getTotalHitsCount());
+        System.out.println("Search took " + secondsDiff + " seconds");
+        System.out.println();
 
         // close cleanly
         indexer.closeIndexingContext(centralContext, false);
+    }
+
+    public void searchArtifactsChangedInLastTwoWeeks() throws IOException {
+        // Calculate the timestamp for 2 weeks ago
+        long twoWeeksAgo = Instant.now().minus(14, ChronoUnit.DAYS).toEpochMilli();
+
+        // Construct a query using LAST_MODIFIED field
+        Query lastModifiedQ = indexer.constructQuery(MAVEN.LAST_MODIFIED,
+                new SourcedSearchExpression(Long.toString(twoWeeksAgo)));
+
+        System.out.println("Searching for artifacts modified in the last 2 weeks...");
+
+        // Perform the search
+        FlatSearchRequest request = new FlatSearchRequest(lastModifiedQ, centralContext);
+        FlatSearchResponse response = indexer.searchFlat(request);
+
+        // Print results
+        for (ArtifactInfo ai : response.getResults()) {
+            System.out.println(ai.toString());
+        }
+
+        System.out.println("------");
+        System.out.println("Total artifacts changed in last 2 weeks: " + response.getTotalHitsCount());
+        System.out.println();
+    }
+
+    public void searchArtifactsChangedInLastTwoWeeksFullScan() throws IOException {
+        // Calculate the timestamp for 2 weeks ago
+        long twoWeeksAgo = Instant.now().minus(14, ChronoUnit.DAYS).toEpochMilli();
+
+        System.out.println("Searching for artifacts modified in the last 2 weeks...");
+
+        long count = 0;
+        final IndexSearcher searcher = centralContext.acquireIndexSearcher();
+        try {
+            final IndexReader ir = searcher.getIndexReader();
+            Bits liveDocs = MultiBits.getLiveDocs(ir);
+            Set<String> fieldsToLoad = Set.of(ArtifactInfo.LAST_MODIFIED, ArtifactInfo.UINFO);
+            for (int i = 0; i < ir.maxDoc(); i++) {
+                if (liveDocs == null || liveDocs.get(i)) {
+                    final Document doc = ir.document(i
+                    // , fieldsToLoad
+                    );
+                    final ArtifactInfo ai = IndexUtils.constructArtifactInfo(doc, centralContext);
+                    if (ai == null)
+                        continue;
+                    String classifier = Optional.ofNullable(ai.getClassifier()).orElseGet(() -> "");
+                    if (classifier.endsWith("javadoc") || classifier.endsWith("sources") || classifier.startsWith("test"))
+                        continue;
+                    long lastModified = ai.getLastModified();
+                    if (lastModified >= twoWeeksAgo) {
+                        System.out.println(ai.toString());
+                        count++;
+                    }
+                }
+            }
+        } finally {
+            centralContext.releaseIndexSearcher(searcher);
+        }
+
+        System.out.println("------");
+        System.out.println("Total artifacts changed in last 2 weeks: " + count);
+        System.out.println();
     }
 
     public void searchAndDump(Indexer nexusIndexer, String descr, Query q) throws IOException {
@@ -322,10 +387,8 @@ public class BasicUsageExample {
             ArtifactInfo ai = entry.getValue().getArtifactInfos().iterator().next();
             System.out.println("* Entry " + ai);
             System.out.println("  Latest version:  " + ai.getVersion());
-            System.out.println(
-                    StringUtils.isBlank(ai.getDescription())
-                            ? "No description in plugin's POM."
-                            : StringUtils.abbreviate(ai.getDescription(), MAX_WIDTH));
+            System.out.println(StringUtils.isBlank(ai.getDescription()) ? "No description in plugin's POM."
+                    : StringUtils.abbreviate(ai.getDescription(), MAX_WIDTH));
             System.out.println();
         }
 
@@ -335,9 +398,7 @@ public class BasicUsageExample {
     }
 
     private static class Java11HttpClient implements ResourceFetcher {
-        private final HttpClient client = HttpClient.newBuilder()
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .build();
+        private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
 
         private URI uri;
 
@@ -347,12 +408,12 @@ public class BasicUsageExample {
         }
 
         @Override
-        public void disconnect() throws IOException {}
+        public void disconnect() throws IOException {
+        }
 
         @Override
         public InputStream retrieve(String name) throws IOException, FileNotFoundException {
-            HttpRequest request =
-                    HttpRequest.newBuilder().uri(uri.resolve(name)).GET().build();
+            HttpRequest request = HttpRequest.newBuilder().uri(uri.resolve(name)).GET().build();
             try {
                 HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
                 if (response.statusCode() == HttpURLConnection.HTTP_OK) {
