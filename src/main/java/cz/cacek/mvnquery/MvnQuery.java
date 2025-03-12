@@ -176,18 +176,21 @@ public class MvnQuery {
         log("Updating Index ...");
         log("\tThis might take a while on first run, so please be patient!");
 
-        Date centralContextCurrentTimestamp = indexingContext.getTimestamp();
+        Date contextCurrentTimestamp = indexingContext.getTimestamp();
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(indexingContext, new Java11HttpClient());
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
         if (updateResult.isFullUpdate()) {
-            log("Full update happened!");
-        } else if (updateResult.getTimestamp().equals(centralContextCurrentTimestamp)) {
-            log("No update needed, index is up to date!");
+            log("\tFull update happened!");
         } else {
-            log("Incremental update happened, change covered " + centralContextCurrentTimestamp + " - "
-                    + updateResult.getTimestamp() + " period.");
+            Date timestamp = updateResult.getTimestamp();
+            if (timestamp == null || timestamp.equals(contextCurrentTimestamp)) {
+                log("\tNo update needed, index is up to date!");
+            } else {
+                log("\tIncremental update happened, change covered " + contextCurrentTimestamp + " - " + timestamp
+                        + " period.");
+            }
         }
-        log("Finished in " + Duration.between(updateStart, Instant.now()).getSeconds() + " sec");
+        log("\tFinished in " + Duration.between(updateStart, Instant.now()).getSeconds() + " sec");
         log();
     }
 
