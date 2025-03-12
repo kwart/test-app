@@ -1,4 +1,4 @@
-package cz.cacek.mvnquery;
+package com.github.kwart.mvnquery;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package cz.cacek.mvnquery;
+package com.github.kwart.mvnquery;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

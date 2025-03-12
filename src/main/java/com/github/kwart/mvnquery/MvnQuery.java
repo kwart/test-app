@@ -16,12 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package cz.cacek.mvnquery;
+package com.github.kwart.mvnquery;
 
 import static java.util.Objects.requireNonNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,12 +37,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.logging.LogManager;
 
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BooleanQuery.Builder;
+import org.apache.lucene.util.Constants;
 import org.apache.maven.index.ArtifactInfo;
 import org.apache.maven.index.Field;
 import org.apache.maven.index.Indexer;
@@ -71,6 +74,8 @@ import com.google.inject.Injector;
  */
 public class MvnQuery {
 
+    public static final String VERSION;
+
     private final Indexer indexer;
     private final IndexUpdater indexUpdater;
     private final Config config;
@@ -92,14 +97,20 @@ public class MvnQuery {
         JCommander jcmd = JCommander.newBuilder().programName("MvnQuery").console(new DefaultConsole(System.err))
                 .acceptUnknownOptions(true).addObject(config).build();
         jcmd.parse(args);
+        UsageFormatter usageFormatter = new UsageFormatter(jcmd, versionLine(),
+                "MvnQuery retrieves Maven repository index and makes query on it.", "java -jar mvnquery.jar [options]");
         if (config.isPrintHelp() || !jcmd.getUnknownOptions().isEmpty()) {
-            jcmd.setUsageFormatter(new UsageFormatter(jcmd));
+            jcmd.setUsageFormatter(usageFormatter);
             jcmd.usage();
             System.exit(2);
-        } else {
-            MvnQuery app = new MvnQuery(config);
-            app.perform();
         }
+
+        if (config.isPrintVersion()) {
+            System.err.println(versionLine());
+            return;
+        }
+        MvnQuery app = new MvnQuery(config);
+        app.perform();
     }
 
     public void perform() throws IOException, InvalidVersionSpecificationException {
@@ -238,5 +249,26 @@ public class MvnQuery {
 
     private void log() {
         log("");
+    }
+
+    private static String versionLine() {
+        return "MvnQuery version " + VERSION;
+    }
+
+    static {
+        String version = "[UNKNOWN]";
+        try (InputStream is = Constants.class
+                .getResourceAsStream("/META-INF/maven/com.github.kwart.mvnquery/mvnquery/pom.properties")) {
+            if (is != null) {
+                Properties props = new Properties();
+                props.load(is);
+                if (props.containsKey("version")) {
+                    version = props.getProperty("version");
+                }
+            }
+        } catch (IOException e) {
+            // ignore
+        }
+        VERSION = version;
     }
 }

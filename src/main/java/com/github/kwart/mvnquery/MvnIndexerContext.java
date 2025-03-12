@@ -1,4 +1,4 @@
-package cz.cacek.mvnquery;
+package com.github.kwart.mvnquery;
 
 import javax.inject.Inject;
 import javax.inject.Named;

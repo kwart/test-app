@@ -1,4 +1,4 @@
-package cz.cacek.mvnquery;
+package com.github.kwart.mvnquery;
 
 import java.io.File;
 
@@ -12,6 +12,9 @@ public class Config {
 
     @Parameter(names = { "--quiet", "-q" }, description = "Don't print progress")
     private boolean quiet;
+
+    @Parameter(names = { "--version", "-v" }, description = "Print version")
+    private boolean printVersion;
 
     @Parameter(names = { "--groupId", "-g" }, description = "Filter by groupId")
     private String groupId;
@@ -64,6 +67,10 @@ public class Config {
 
     public boolean isPrintHelp() {
         return printHelp;
+    }
+
+    public boolean isPrintVersion() {
+        return printVersion;
     }
 
     public boolean isQuiet() {
