@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package cz.cacek.test;
+package cz.cacek.mvnquery;
 
 import static java.util.Objects.requireNonNull;
 

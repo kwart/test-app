@@ -1,4 +1,4 @@
-package cz.cacek.test;
+package cz.cacek.mvnquery;
 import java.util.ArrayList;
 import java.util.List;
 
