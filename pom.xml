@@ -15,6 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>17</maven.compiler.release>
         <exec.mainClass>cz.cacek.mvnquery.MvnQuery</exec.mainClass>
+        <version.slf4j>2.0.17</version.slf4j>
     </properties>
 
     <build>
@@ -58,7 +59,8 @@
                                 </transformer>
                                 <transformer
                                     implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                                     <resource>META-INF/sisu/javax.inject.Named</resource>
                                 </transformer>
                             </transformers>
@@ -95,7 +97,6 @@
     </build>
 
     <dependencies>
-
         <dependency>
             <groupId>org.apache.maven.indexer</groupId>
             <artifactId>indexer-core</artifactId>
@@ -106,6 +107,23 @@
             <artifactId>jcommander</artifactId>
             <version>1.82</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${version.slf4j}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>${version.slf4j}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-nop</artifactId>
+            <version>${version.slf4j}</version>
+        </dependency>
+
         <!-- Runtime: DI -->
         <dependency>
             <groupId>org.eclipse.sisu</groupId>

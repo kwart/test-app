@@ -1,26 +1,72 @@
 package cz.cacek.mvnquery;
-import com.beust.jcommander.JCommander;
+
+import java.io.File;
+
 import com.beust.jcommander.Parameter;
+import com.beust.jcommander.converters.FileConverter;
 
-public static class Config {
-        @Parameter(names = "--groupId", description = "Filter by groupId")
-        private String groupId;
+public class Config {
 
-        @Parameter(names = "--artifactId", description = "Filter by artifactId")
-        private String artifactId;
+    @Parameter(names = { "--help", "-h" }, help = true, description = "Prints this help")
+    private boolean printHelp;
 
-        @Parameter(names = "--packaging", description = "Filter by packaging type", defaultValue = "jar")
-        private String packaging;
+    @Parameter(names = { "--quiet", "-q" }, description = "Don't print progress")
+    private boolean quiet;
 
-        @Parameter(names = "--classifier", description = "Filter by classifier", defaultValue = "-")
-        private String classifier;
+    @Parameter(names = { "--groupId", "-g" }, description = "Filter by groupId")
+    private String groupId;
 
-        @Parameter(names = "--lastDays", description = "Filter artifacts modified in last X days", defaultValue = "14")
-        private int lastDays;
+    @Parameter(names = { "--artifactId", "-a" }, description = "Filter by artifactId")
+    private String artifactId;
 
-        @Parameter(names = "--dataDir", description = "Set data directory for index", defaultValue = "${user.home}/.mvnindex")
-        private String dataDir;
+    @Parameter(names = { "--packaging", "-p" }, description = "Filter by packaging type")
+    private String packaging = "jar";
 
-        @Parameter(names = "--repo", description = "Set repository URL", defaultValue = "https://repo1.maven.org/maven2")
-        private String repo;
+    @Parameter(names = { "--classifier", "-c" }, description = "Filter by classifier")
+    private String classifier = "-";
+
+    @Parameter(names = { "--lastDays", "-d" }, description = "Filter artifacts modified in last X days")
+    private int lastDays = 14;
+
+    @Parameter(names = { "--config-data-dir" }, converter = FileConverter.class, description = "Set data directory for index")
+    private File configDataDir = new File(System.getProperty("user.home"), ".mvnindex");
+
+    @Parameter(names = { "--config-repo" }, description = "Set repository URL")
+    private String configRepo = "https://repo1.maven.org/maven2";
+
+    public String getGroupId() {
+        return groupId;
     }
+
+    public String getArtifactId() {
+        return artifactId;
+    }
+
+    public String getPackaging() {
+        return packaging;
+    }
+
+    public String getClassifier() {
+        return classifier;
+    }
+
+    public int getLastDays() {
+        return lastDays;
+    }
+
+    public File getConfigDataDir() {
+        return configDataDir;
+    }
+
+    public String getConfigRepo() {
+        return configRepo;
+    }
+
+    public boolean isPrintHelp() {
+        return printHelp;
+    }
+
+    public boolean isQuiet() {
+        return quiet;
+    }
+}

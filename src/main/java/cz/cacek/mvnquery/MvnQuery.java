@@ -36,10 +36,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import java.util.logging.LogManager;
 
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.search.BooleanClause.Occur;
@@ -61,51 +58,50 @@ import org.apache.maven.index.updater.IndexUpdater;
 import org.eclipse.aether.version.InvalidVersionSpecificationException;
 import org.eclipse.sisu.launch.Main;
 import org.eclipse.sisu.space.BeanScanning;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.internal.DefaultConsole;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 /**
- * Query Maven Index. 
- * See https://stackoverflow.com/questions/5776519/how-to-parse-unzip-unpack-maven-repository-indexes-generated-by-nexus
+ * Query Maven Index. See
+ * https://stackoverflow.com/questions/5776519/how-to-parse-unzip-unpack-maven-repository-indexes-generated-by-nexus
  */
 public class MvnQuery {
+
     private final Indexer indexer;
     private final IndexUpdater indexUpdater;
-//    private final Config config;
+    private final Config config;
 
-    private final static String QUERY_PREFIX = "query.";
-    public final static String PROP_GROUP_ID = QUERY_PREFIX + "groupId";
-    public final static String PROP_ARTIFACT_ID = QUERY_PREFIX + "artifactId";
-    public final static String PROP_PACKAGING = QUERY_PREFIX + "packaging";
-    public final static String PROP_CLASSIFIER = QUERY_PREFIX + "classifier";
-    public final static String PROP_LAST_DAYS = QUERY_PREFIX + "lastDays";
-
-    private final static String CONFIG_PREFIX = "config.";
-    public final static String PROP_CFG_DATA_DIR = CONFIG_PREFIX + "dataDir";
-    public final static String PROP_CFG_REPO = CONFIG_PREFIX + "repo";
-
-    private final String QVAL_GROUP_ID = System.getProperty(PROP_GROUP_ID);
-    private final String QVAL_ARTIFACT_ID = System.getProperty(PROP_ARTIFACT_ID);
-    private final String QVAL_PACKAGING = System.getProperty(PROP_PACKAGING, "jar");
-    private final String QVAL_CLASSIFIER = System.getProperty(PROP_CLASSIFIER, "-");
-    private final int QVAL_LAST_DAYS = Integer.getInteger(PROP_LAST_DAYS, 14);
-
-    private final File CFG_DATA_DIR = new File(
-            System.getProperty(PROP_CFG_DATA_DIR, System.getProperty("user.home") + File.separator + ".mvnindex"));
-    private final String CFG_REPO = System.getProperty(PROP_CFG_REPO, "https://repo1.maven.org/maven2");
-
-    public MvnQuery() throws Exception {
-        Injector injector = Guice.createInjector(Main.wire(BeanScanning.INDEX));
-        this.indexer = injector.getInstance(Indexer.class);
-        this.indexUpdater = injector.getInstance(IndexUpdater.class);
+    public MvnQuery(Config config) throws Exception {
+        this.config = requireNonNull(config);
+        Injector injector = Guice.createInjector(Main.wire(BeanScanning.CACHE));
+        MvnIndexerContext ctx = injector.getInstance(MvnIndexerContext.class);
+        this.indexer = ctx.indexer;
+        this.indexUpdater = ctx.indexUpdater;
     }
 
     public static void main(String args[]) throws Exception {
-        MvnQuery app = new MvnQuery();
-        app.perform();
+        LogManager.getLogManager().reset();
+        SLF4JBridgeHandler.removeHandlersForRootLogger();
+        SLF4JBridgeHandler.install();
+
+        Config config = new Config();
+        JCommander jcmd = JCommander.newBuilder().programName("MvnQuery").console(new DefaultConsole(System.err))
+                .acceptUnknownOptions(true).addObject(config).build();
+        jcmd.parse(args);
+        if (config.isPrintHelp() || !jcmd.getUnknownOptions().isEmpty()) {
+            jcmd.setUsageFormatter(new UsageFormatter(jcmd));
+            jcmd.usage();
+            System.exit(2);
+        } else {
+            MvnQuery app = new MvnQuery(config);
+            app.perform();
+        }
     }
-    
+
     public void perform() throws IOException, InvalidVersionSpecificationException {
         IndexingContext indexingContext = initIndexingContext();
         updateIndex(indexingContext);
@@ -115,8 +111,8 @@ public class MvnQuery {
     }
 
     private void runQuery(IndexingContext indexingContext, BooleanQuery query) throws IOException {
-        System.err.println("Querying index");
-        System.err.println("------");
+        log("Querying index");
+        log("------");
         Instant searchStart = Instant.now();
         final IteratorSearchRequest request = new IteratorSearchRequest(query, Collections.singletonList(indexingContext));
         long count = 0L;
@@ -126,16 +122,12 @@ public class MvnQuery {
                 count++;
             }
             long secondsDiff = Duration.between(searchStart, Instant.now()).getSeconds();
-            System.err.println("------");
-            System.err.println("Total response size: " + response.getTotalHitsCount());
-            System.err.println("Artifacts listed: " + count);
-            System.err.println("Query took " + secondsDiff + " seconds");
-            System.err.println();
+            log("------");
+            log("Total response size: " + response.getTotalHitsCount());
+            log("Artifacts listed: " + count);
+            log("Query took " + secondsDiff + " seconds");
+            log();
         }
-        // FlatSearchResponse response = indexer.searchFlat(new FlatSearchRequest(query, indexingContext));
-        // for (ArtifactInfo ai : response.getResults()) {
-        // System.out.println(getCoordinates(ai));
-        // }
     }
 
     private String getCoordinates(ArtifactInfo ai) {
@@ -144,24 +136,25 @@ public class MvnQuery {
     }
 
     private BooleanQuery buildQuery() {
-        System.err.println("Building the query");
+        log("Building the query");
 
         BooleanQuery.Builder builder = new BooleanQuery.Builder();
-        addToQuery(builder, MAVEN.GROUP_ID, QVAL_GROUP_ID);
-        addToQuery(builder, MAVEN.ARTIFACT_ID, QVAL_ARTIFACT_ID);
-        addToQuery(builder, MAVEN.PACKAGING, QVAL_PACKAGING);
-        if (!addToQuery(builder, MAVEN.CLASSIFIER, QVAL_CLASSIFIER) && QVAL_CLASSIFIER != null) {
+        addToQuery(builder, MAVEN.GROUP_ID, config.getGroupId());
+        addToQuery(builder, MAVEN.ARTIFACT_ID, config.getArtifactId());
+        addToQuery(builder, MAVEN.PACKAGING, config.getPackaging());
+        if (!addToQuery(builder, MAVEN.CLASSIFIER, config.getClassifier()) && config.getClassifier() != null) {
             builder.add(indexer.constructQuery(MAVEN.CLASSIFIER, new SourcedSearchExpression(Field.NOT_PRESENT)),
                     Occur.MUST_NOT);
         }
 
-        if (QVAL_LAST_DAYS > 0) {
-            long lastModifiedRangeStart = Instant.now().minus(QVAL_LAST_DAYS, ChronoUnit.DAYS).toEpochMilli();
+        int lastDays = config.getLastDays();
+        if (lastDays > 0) {
+            long lastModifiedRangeStart = Instant.now().minus(lastDays, ChronoUnit.DAYS).toEpochMilli();
             builder.add(LongPoint.newRangeQuery(CustomArtifactInfoIndexCreator.FLD_LAST_MODIFIED.getKey(),
                     lastModifiedRangeStart, Long.MAX_VALUE), Occur.MUST);
         }
         BooleanQuery query = builder.build();
-        System.err.println("\t" + query);
+        log("\t" + query);
         return query;
     }
 
@@ -180,37 +173,38 @@ public class MvnQuery {
         // other index sources might have different index publishing frequency.
         // Preferred frequency is once a week.
         Instant updateStart = Instant.now();
-        System.err.println("Updating Index ...");
-        System.err.println("\tThis might take a while on first run, so please be patient!");
+        log("Updating Index ...");
+        log("\tThis might take a while on first run, so please be patient!");
 
         Date centralContextCurrentTimestamp = indexingContext.getTimestamp();
         IndexUpdateRequest updateRequest = new IndexUpdateRequest(indexingContext, new Java11HttpClient());
         IndexUpdateResult updateResult = indexUpdater.fetchAndUpdateIndex(updateRequest);
         if (updateResult.isFullUpdate()) {
-            System.err.println("Full update happened!");
+            log("Full update happened!");
         } else if (updateResult.getTimestamp().equals(centralContextCurrentTimestamp)) {
-            System.err.println("No update needed, index is up to date!");
+            log("No update needed, index is up to date!");
         } else {
-            System.err.println("Incremental update happened, change covered " + centralContextCurrentTimestamp + " - "
+            log("Incremental update happened, change covered " + centralContextCurrentTimestamp + " - "
                     + updateResult.getTimestamp() + " period.");
         }
-        System.err.println("Finished in " + Duration.between(updateStart, Instant.now()).getSeconds() + " sec");
-        System.err.println();
+        log("Finished in " + Duration.between(updateStart, Instant.now()).getSeconds() + " sec");
+        log();
     }
 
     private IndexingContext initIndexingContext() throws IOException, ExistingLuceneIndexMismatchException {
-        System.err.println("Initiating indexing context for " + CFG_REPO);
-        String repoHash = hashRepo(CFG_REPO);
-        File repoDir = new File(CFG_DATA_DIR, repoHash);
-        System.err.println("\t- repository index data location: " + repoDir);
+        String configRepo = config.getConfigRepo();
+        log("Initiating indexing context for " + configRepo);
+        String repoHash = hashRepo(configRepo);
+        File repoDir = new File(config.getConfigDataDir(), repoHash);
+        log("\t- repository index data location: " + repoDir);
         if (!repoDir.exists()) {
-            System.err.println("\t- creating index data directory");
+            log("\t- creating index data directory");
             repoDir.mkdirs();
         }
 
         Path repoUrlPath = repoDir.toPath().resolve("repo-url");
         if (!Files.exists(repoUrlPath)) {
-            Files.writeString(repoUrlPath, CFG_REPO, StandardOpenOption.CREATE);
+            Files.writeString(repoUrlPath, configRepo, StandardOpenOption.CREATE);
         }
         File cacheDir = new File(repoDir, "cache");
         File indexDir = new File(repoDir, "index");
@@ -220,7 +214,7 @@ public class MvnQuery {
         indexers.add(new CustomArtifactInfoIndexCreator());
 
         // Create context for central repository index
-        return indexer.createIndexingContext(repoHash, repoHash, cacheDir, indexDir, CFG_REPO, null, true, true, indexers);
+        return indexer.createIndexingContext(repoHash, repoHash, cacheDir, indexDir, configRepo, null, true, true, indexers);
     }
 
     private static String hashRepo(String url) {
@@ -232,25 +226,14 @@ public class MvnQuery {
             throw new RuntimeException("Hashing failed", e);
         }
     }
-    
-    /**
-     * Prints usage information for defined system properties.
-     */
-    public static void printUsage() {
-        System.err.println("Usage: Configure the following system properties to modify behavior:");
-        System.err.println();
-        System.err.println("Query Parameters:");
-        System.err.println("  -D" + PROP_GROUP_ID + "=<groupId>       (Filter by groupId, e.g., org.apache.maven)");
-        System.err.println("  -D" + PROP_ARTIFACT_ID + "=<artifactId>   (Filter by artifactId, e.g., maven-core)");
-        System.err.println("  -D" + PROP_PACKAGING + "=<packaging>     (Filter by packaging type, default: jar)");
-        System.err.println("  -D" + PROP_CLASSIFIER + "=<classifier>   (Filter by classifier, default: \"-\")");
-        System.err.println("  -D" + PROP_LAST_DAYS + "=<days>         (Filter artifacts modified in last X days, default: 14)");
-        System.err.println();
-        System.err.println("Configuration Parameters:");
-        System.err.println("  -D" + PROP_CFG_DATA_DIR + "=<path>       (Set data directory for index, default: ~/.mvnindex)");
-        System.err.println("  -D" + PROP_CFG_REPO + "=<URL>          (Set repository URL, default: https://repo1.maven.org/maven2)");
-        System.err.println();
-        System.err.println("Example usage:");
-        System.err.println("  java -D" + PROP_GROUP_ID + "=org.apache.maven -D" + PROP_LAST_DAYS + "=30 -jar my-app.jar");
+
+    private void log(String line) {
+        if (!config.isQuiet()) {
+            System.err.println(line);
+        }
+    }
+
+    private void log() {
+        log("");
     }
 }
