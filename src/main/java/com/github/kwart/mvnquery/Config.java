@@ -32,7 +32,7 @@ public class Config {
     private int lastDays = 14;
 
     @Parameter(names = { "--config-data-dir" }, converter = FileConverter.class, description = "Set data directory for index")
-    private File configDataDir = new File(System.getProperty("user.home"), ".mvnindex");
+    private File configDataDir = new File(System.getProperty("user.home"), ".mvnquery");
 
     @Parameter(names = { "--config-repo" }, description = "Set repository URL")
     private String configRepo = "https://repo1.maven.org/maven2";

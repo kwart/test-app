@@ -98,7 +98,8 @@ public class MvnQuery {
                 .acceptUnknownOptions(true).addObject(config).build();
         jcmd.parse(args);
         UsageFormatter usageFormatter = new UsageFormatter(jcmd, versionLine(),
-                "MvnQuery retrieves Maven repository index and makes query on it.", "java -jar mvnquery.jar [options]");
+                "MvnQuery retrieves Maven repository index and makes query on it.",
+                "java --enable-native-access=ALL-UNNAMED -jar mvnquery.jar [options]");
         if (config.isPrintHelp() || !jcmd.getUnknownOptions().isEmpty()) {
             jcmd.setUsageFormatter(usageFormatter);
             jcmd.usage();

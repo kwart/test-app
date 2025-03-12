@@ -12,7 +12,7 @@ import java.net.http.HttpResponse;
 import org.apache.maven.index.updater.ResourceFetcher;
 
 public class Java11HttpClient implements ResourceFetcher {
-        private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build();
+        private final HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build();
 
         private URI uri;
 
