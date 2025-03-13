@@ -3,6 +3,10 @@
 MvnQuery fetches a Maven repository index and queries it.
 By default it uses Maven Central repository index and the index data are stored to `${HOME}/.mvnquery`
 
+The artifacts returned by the query are listed by default in format `groupId:artifactId:version:packaging:classifier`.
+If you want to see the `lastModified` timestamp in the result use `-t` program parameter. Then the output format is
+`groupId:artifactId:version:packaging:classifier:lastModifiedTimestamp`
+
 ## Quickstart
 
 Print help.
@@ -39,6 +43,12 @@ java --enable-native-access=ALL-UNNAMED -jar mvnquery.jar [options]
       Default: jar
     --quiet, -q
       Don't print progress
+      Default: false
+    --timestamp-format
+      User defined format to print the lastModifiedTime ('iso',
+      'yyyyMMddHHmmssSSS', etc.)
+    --use-timestamp, -t
+      Print also the lastModifiedTime
       Default: false
     --version, -v
       Print version

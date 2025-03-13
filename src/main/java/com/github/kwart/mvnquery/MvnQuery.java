@@ -30,12 +30,15 @@ import java.nio.file.StandardOpenOption;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.logging.LogManager;
@@ -79,9 +82,17 @@ public class MvnQuery {
     private final Indexer indexer;
     private final IndexUpdater indexUpdater;
     private final Config config;
+    private final DateTimeFormatter timestampFormatter;
 
     public MvnQuery(Config config) throws Exception {
         this.config = requireNonNull(config);
+        String tf = config.getTimestampFormat();
+        if (tf != null) {
+            timestampFormatter = "ISO".equals(tf.toUpperCase(Locale.ROOT)) ? DateTimeFormatter.ISO_INSTANT
+                    : DateTimeFormatter.ofPattern(tf).withZone(ZoneId.systemDefault());
+        } else {
+            timestampFormatter = null;
+        }
         Injector injector = Guice.createInjector(Main.wire(BeanScanning.CACHE));
         MvnIndexerContext ctx = injector.getInstance(MvnIndexerContext.class);
         this.indexer = ctx.indexer;
@@ -143,8 +154,18 @@ public class MvnQuery {
     }
 
     private String getCoordinates(ArtifactInfo ai) {
-        return ai.getGroupId() + ":" + ai.getArtifactId() + ":" + ai.getVersion() + ":" + ai.getPackaging() + ":"
-                + Objects.toString(ai.getClassifier(), "");
+        StringBuilder sb = new StringBuilder();
+        sb.append(ai.getGroupId()).append(":").append(ai.getArtifactId()).append(":").append(ai.getVersion()).append(":")
+                .append(ai.getPackaging()).append(":").append(Objects.toString(ai.getClassifier(), ""));
+
+        if (config.isUseTimestamp()) {
+            sb.append(":").append(formatTimestamp(ai.getLastModified()));
+        }
+        return sb.toString();
+    }
+
+    private String formatTimestamp(long timestamp) {
+        return timestampFormatter != null ? timestampFormatter.format(Instant.ofEpochMilli(timestamp)) : Long.toString(timestamp);
     }
 
     private BooleanQuery buildQuery() {
