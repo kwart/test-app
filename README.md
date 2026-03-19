@@ -1,5 +1,96 @@
 # Playground
 
+## JDK 26 features
+
+* 500: [Prepare to Make Final Mean Final](https://openjdk.org/jeps/500)
+* 504: [Remove the Applet API](https://openjdk.org/jeps/504)
+* 516: [Ahead-of-Time Object Caching with Any GC](https://openjdk.org/jeps/516)
+* 517: [HTTP/3 for the HTTP Client API](https://openjdk.org/jeps/517)
+* 522: [G1 GC: Improve Throughput by Reducing Synchronization](https://openjdk.org/jeps/522)
+* 524: [PEM Encodings of Cryptographic Objects (Second Preview)](https://openjdk.org/jeps/524)
+* 525: [Structured Concurrency (Sixth Preview)](https://openjdk.org/jeps/525)
+* 526: [Lazy Constants (Second Preview)](https://openjdk.org/jeps/526)
+* 529: [Vector API (Eleventh Incubator)](https://openjdk.org/jeps/529)
+* 530: [Primitive Types in Patterns, instanceof, and switch (Fourth Preview)](https://openjdk.org/jeps/530)
+
+## JDK 25 features
+
+* 470: [PEM Encodings of Cryptographic Objects (Preview)](https://openjdk.org/jeps/470)
+* 502: [Stable Values (Preview)](https://openjdk.org/jeps/502)
+* 503: [Remove the 32-bit x86 Port](https://openjdk.org/jeps/503)
+* 505: [Structured Concurrency (Fifth Preview)](https://openjdk.org/jeps/505)
+* 506: [Scoped Values](https://openjdk.org/jeps/506)
+* 507: [Primitive Types in Patterns, instanceof, and switch (Third Preview)](https://openjdk.org/jeps/507)
+* 508: [Vector API (Tenth Incubator)](https://openjdk.org/jeps/508)
+* 509: [JFR CPU-Time Profiling (Experimental)](https://openjdk.org/jeps/509)
+* 510: [Key Derivation Function API](https://openjdk.org/jeps/510)
+* 511: [Module Import Declarations](https://openjdk.org/jeps/511)
+* 512: [Compact Source Files and Instance Main Methods](https://openjdk.org/jeps/512)
+* 513: [Flexible Constructor Bodies](https://openjdk.org/jeps/513)
+* 514: [Ahead-of-Time Command-Line Ergonomics](https://openjdk.org/jeps/514)
+* 515: [Ahead-of-Time Method Profiling](https://openjdk.org/jeps/515)
+* 518: [JFR Cooperative Sampling](https://openjdk.org/jeps/518)
+* 519: [Compact Object Headers](https://openjdk.org/jeps/519)
+* 520: [JFR Method Timing & Tracing](https://openjdk.org/jeps/520)
+* 521: [Generational Shenandoah](https://openjdk.org/jeps/521)
+
+## JDK 24 features
+
+* 404: [Generational Shenandoah (Experimental)](https://openjdk.org/jeps/404)
+* 450: [Compact Object Headers (Experimental)](https://openjdk.org/jeps/450)
+* 472: [Prepare to Restrict the Use of JNI](https://openjdk.org/jeps/472)
+* 475: [Late Barrier Expansion for G1](https://openjdk.org/jeps/475)
+* 478: [Key Derivation Function API (Preview)](https://openjdk.org/jeps/478)
+* 479: [Remove the Windows 32-bit x86 Port](https://openjdk.org/jeps/479)
+* 483: [Ahead-of-Time Class Loading & Linking](https://openjdk.org/jeps/483)
+* 484: [Class-File API](https://openjdk.org/jeps/484)
+* 485: [Stream Gatherers](https://openjdk.org/jeps/485)
+* 486: [Permanently Disable the Security Manager](https://openjdk.org/jeps/486)
+* 487: [Scoped Values (Fourth Preview)](https://openjdk.org/jeps/487)
+* 488: [Primitive Types in Patterns, instanceof, and switch (Second Preview)](https://openjdk.org/jeps/488)
+* 489: [Vector API (Ninth Incubator)](https://openjdk.org/jeps/489)
+* 490: [ZGC: Remove the Non-Generational Mode](https://openjdk.org/jeps/490)
+* 491: [Synchronize Virtual Threads without Pinning](https://openjdk.org/jeps/491)
+* 492: [Flexible Constructor Bodies (Third Preview)](https://openjdk.org/jeps/492)
+* 493: [Linking Run-Time Images without JMODs](https://openjdk.org/jeps/493)
+* 494: [Module Import Declarations (Second Preview)](https://openjdk.org/jeps/494)
+* 495: [Simple Source Files and Instance Main Methods (Fourth Preview)](https://openjdk.org/jeps/495)
+* 496: [Quantum-Resistant Module-Lattice-Based Key Encapsulation Mechanism](https://openjdk.org/jeps/496)
+* 497: [Quantum-Resistant Module-Lattice-Based Digital Signature Algorithm](https://openjdk.org/jeps/497)
+* 498: [Warn upon Use of Memory-Access Methods in sun.misc.Unsafe](https://openjdk.org/jeps/498)
+* 499: [Structured Concurrency (Fourth Preview)](https://openjdk.org/jeps/499)
+* 501: [Deprecate the 32-bit x86 Port for Removal](https://openjdk.org/jeps/501)
+
+## JDK 23 features
+
+* 455: [Primitive Types in Patterns, instanceof, and switch (Preview)](https://openjdk.org/jeps/455)
+* 466: [Class-File API (Second Preview)](https://openjdk.org/jeps/466)
+* 467: [Markdown Documentation Comments](https://openjdk.org/jeps/467)
+* 469: [Vector API (Eighth Incubator)](https://openjdk.org/jeps/469)
+* 471: [Deprecate the Memory-Access Methods in sun.misc.Unsafe for Removal](https://openjdk.org/jeps/471)
+* 473: [Stream Gatherers (Second Preview)](https://openjdk.org/jeps/473)
+* 474: [ZGC: Generational Mode by Default](https://openjdk.org/jeps/474)
+* 476: [Module Import Declarations (Preview)](https://openjdk.org/jeps/476)
+* 477: [Implicitly Declared Classes and Instance Main Methods (Third Preview)](https://openjdk.org/jeps/477)
+* 480: [Structured Concurrency (Third Preview)](https://openjdk.org/jeps/480)
+* 481: [Scoped Values (Third Preview)](https://openjdk.org/jeps/481)
+* 482: [Flexible Constructor Bodies (Second Preview)](https://openjdk.org/jeps/482)
+
+## JDK 22 features
+
+* 423: [Region Pinning for G1](https://openjdk.org/jeps/423)
+* 447: [Statements before super(...) (Preview)](https://openjdk.org/jeps/447)
+* 454: [Foreign Function & Memory API](https://openjdk.org/jeps/454)
+* 456: [Unnamed Variables & Patterns](https://openjdk.org/jeps/456)
+* 457: [Class-File API (Preview)](https://openjdk.org/jeps/457)
+* 458: [Launch Multi-File Source-Code Programs](https://openjdk.org/jeps/458)
+* 459: [String Templates (Second Preview)](https://openjdk.org/jeps/459)
+* 460: [Vector API (Seventh Incubator)](https://openjdk.org/jeps/460)
+* 461: [Stream Gatherers (Preview)](https://openjdk.org/jeps/461)
+* 462: [Structured Concurrency (Second Preview)](https://openjdk.org/jeps/462)
+* 463: [Implicitly Declared Classes and Instance Main Methods (Second Preview)](https://openjdk.org/jeps/463)
+* 464: [Scoped Values (Second Preview)](https://openjdk.org/jeps/464)
+
 ## JDK 21 features
 
 * 430: [String Templates (Preview)](https://openjdk.org/jeps/430)

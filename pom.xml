@@ -58,6 +58,27 @@
                 <module>java21</module>
             </modules>
         </profile>
+        <profile>
+            <id>java25-lts-modules</id>
+            <activation>
+                <jdk>[25,)</jdk>
+            </activation>
+            <modules>
+                <module>java22</module>
+                <module>java23</module>
+                <module>java24</module>
+                <module>java25</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>java26-modules</id>
+            <activation>
+                <jdk>[26,)</jdk>
+            </activation>
+            <modules>
+                <module>java26</module>
+            </modules>
+        </profile>
     </profiles>
 
     <build>
