@@ -98,7 +98,7 @@ public class Java25Test {
         javax.crypto.SecretKey inputKey = new javax.crypto.spec.SecretKeySpec(
                 "input-key-material".getBytes(), "Generic");
 
-        javax.crypto.KDFParameters params = javax.crypto.spec.HKDFParameterSpec
+        java.security.spec.AlgorithmParameterSpec params = javax.crypto.spec.HKDFParameterSpec
                 .ofExtract()
                 .addIKM(inputKey)
                 .addSalt(new javax.crypto.spec.SecretKeySpec("salt".getBytes(), "Generic"))
