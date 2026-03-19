@@ -1,51 +1,28 @@
 package cz.cacek.test;
 
-import java.time.Duration;
-import java.util.concurrent.Executors;
-import java.util.stream.IntStream;
-
 import org.junit.jupiter.api.Test;
 
 /**
  * Check the <a href="https://openjdk.org/projects/jdk/19/">JDK 19 page</a>.
+ *
+ * JDK 19 features were mostly preview/incubator:
+ * - Record Patterns (Preview, JEP 405) - finalized in JDK 21
+ * - Virtual Threads (Preview, JEP 425) - finalized in JDK 21
+ * - Pattern Matching for switch (Third Preview, JEP 427) - finalized in JDK 21
+ * - Foreign Function & Memory API (Preview, JEP 424) - finalized in JDK 22
+ * - Structured Concurrency (Incubator, JEP 428) - still in preview
+ *
+ * Final feature tests for these are in their respective finalized modules.
  */
 public class Java19Test {
 
     // https://openjdk.org/projects/jdk/19/
 
     @Test
-    // https://openjdk.org/jeps/405
-    public void recordPatternsPreview() throws Exception {
-        ColoredPoint cp = new ColoredPoint(new Point(1,2), Color.RED);
-        Object r = new Rectangle(cp, cp);
-        if (r instanceof Rectangle(ColoredPoint(Point p, Color c), ColoredPoint lr)) {
-             System.out.println(c);
-        }
-    }
-
-    @Test
-    // https://openjdk.org/jeps/425
-    public void virtualThreadsPreview() throws Exception {
-        try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            IntStream.range(0, 10_000).forEach(i -> {
-                executor.submit(() -> {
-                    Thread.sleep(Duration.ofSeconds(1));
-                    return i;
-                });
-            });
-        }  // executor.close() is called implicitly, and waits
-    }
-
-    record Point(int x, int y) {
-    }
-
-    enum Color {
-        RED, GREEN, BLUE
-    }
-
-    record ColoredPoint(Point p, Color c) {
-    }
-
-    record Rectangle(ColoredPoint upperLeft, ColoredPoint lowerRight) {
+    // https://openjdk.org/jeps/422
+    public void linuxRiscVPort() {
+        // JEP 422: Linux/RISC-V Port - platform support, not directly testable via API
+        String osArch = System.getProperty("os.arch");
+        System.out.println("Running on architecture: " + osArch);
     }
 }

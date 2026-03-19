@@ -16,17 +16,4 @@
     <properties>
         <maven.compiler.release>20</maven.compiler.release>
     </properties>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <enablePreview>true</enablePreview>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
 </project>

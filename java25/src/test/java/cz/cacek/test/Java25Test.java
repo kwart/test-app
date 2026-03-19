@@ -1,7 +1,6 @@
 package cz.cacek.test;
 
 import java.util.*;
-import java.util.concurrent.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -16,8 +15,8 @@ public class Java25Test {
 
     @Test
     // https://openjdk.org/jeps/506
-    public void scopedValuesFinal() throws Exception {
-        // Scoped Values are now final - structured alternative to ThreadLocal
+    public void scopedValues() throws Exception {
+        // Scoped Values are final - structured alternative to ThreadLocal
         final ScopedValue<String> USER = ScopedValue.newInstance();
 
         // Run with a scoped value bound
@@ -48,8 +47,8 @@ public class Java25Test {
 
     @Test
     // https://openjdk.org/jeps/513
-    public void flexibleConstructorBodiesFinal() {
-        // Flexible Constructor Bodies are now final
+    public void flexibleConstructorBodies() {
+        // Flexible Constructor Bodies are final
         class Base {
             final int validated;
             Base(int value) {
@@ -77,13 +76,13 @@ public class Java25Test {
     @Test
     // https://openjdk.org/jeps/511
     public void moduleImportDeclarations() {
-        // Module import declarations are now final
+        // Module import declarations are final
         // The 'import module java.base;' declaration imports all public types from java.base
         // This is a compile-time feature - we verify it works by using types
         // that would normally need explicit imports, accessed via module import
 
         // All java.base types are available without individual imports
-        // (shown implicitly by our use of java.util.* and java.util.concurrent.* above)
+        // (shown implicitly by our use of java.util.* above)
         List<String> list = List.of("module", "imports", "work");
         assertEquals(3, list.size());
     }
@@ -91,7 +90,7 @@ public class Java25Test {
     @Test
     // https://openjdk.org/jeps/510
     public void keyDerivationFunctionApi() throws Exception {
-        // KDF API is now final - provides key derivation functions
+        // KDF API is final - provides key derivation functions
         javax.crypto.KDF hkdf = javax.crypto.KDF.getInstance("HKDF-SHA256");
         assertNotNull(hkdf);
 
@@ -108,30 +107,5 @@ public class Java25Test {
         javax.crypto.SecretKey derivedKey = hkdf.deriveKey("Generic", params);
         assertNotNull(derivedKey);
         assertEquals(32, derivedKey.getEncoded().length);
-    }
-
-    @Test
-    // https://openjdk.org/jeps/502
-    public void stableValuesPreview() {
-        // Stable Values provide deferred, thread-safe, at-most-once initialization
-        StableValue<String> stable = StableValue.of();
-
-        // Not yet computed
-        assertFalse(stable.isSet());
-
-        // Set the value (at most once)
-        stable.setOrThrow("computed");
-        assertTrue(stable.isSet());
-        assertEquals("computed", stable.orElseThrow());
-
-        // Cannot set again
-        assertThrows(IllegalStateException.class, () -> stable.setOrThrow("again"));
-
-        // Supplier-based stable value
-        StableValue<Integer> lazy = StableValue.of();
-        int result = lazy.orElseSet(() -> 42);
-        assertEquals(42, result);
-        // Subsequent calls return same value without re-computing
-        assertEquals(42, lazy.orElseSet(() -> 99));
     }
 }

@@ -1,38 +1,15 @@
 package cz.cacek.test;
 
-import java.util.*;
-import java.util.concurrent.*;
-
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Check the <a href="https://openjdk.org/projects/jdk/26/">JDK 26 page</a>.
- * Note: JDK 26 is still in development. Features may change before GA.
  */
 public class Java26Test {
 
     // https://openjdk.org/projects/jdk/26/
-
-    @Test
-    // https://openjdk.org/jeps/525
-    public void structuredConcurrencyPreview() throws Exception {
-        // Structured Concurrency (sixth preview) - manage concurrent subtasks as a unit
-        try (var scope = StructuredTaskScope.open()) {
-            Subtask<String> task1 = scope.fork(() -> {
-                return "Hello";
-            });
-            Subtask<Integer> task2 = scope.fork(() -> {
-                return 42;
-            });
-
-            scope.join();
-
-            assertEquals("Hello", task1.get());
-            assertEquals(42, (int) task2.get());
-        }
-    }
 
     @Test
     // https://openjdk.org/jeps/500

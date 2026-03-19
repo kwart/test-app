@@ -36,7 +36,7 @@ mvn test -pl java21 -Dtest=Java21Test#testSealedClasses
   - JDK 26+: `java26`
 - **java8 module** is the only one with a main class (`App.java`) and uses Hazelcast 5.1.3. It produces a shaded fat JAR.
 - **java9–java26 modules** are primarily test-only, showcasing language features in JUnit 5 tests.
-- **java21–java26 modules** enable `--enable-preview` for both compilation and test execution.
+- No modules use `--enable-preview`. Tests only cover final (non-preview) features. Preview feature tests are placed in the module for the JDK version where the feature was finalized.
 - Testing uses **JUnit 5 (Jupiter)** with **Hamcrest** matchers.
 
 ## CI

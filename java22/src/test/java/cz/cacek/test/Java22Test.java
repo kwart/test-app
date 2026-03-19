@@ -1,7 +1,6 @@
 package cz.cacek.test;
 
 import java.util.*;
-import java.util.stream.*;
 
 import org.junit.jupiter.api.Test;
 
@@ -57,62 +56,9 @@ public class Java22Test {
     }
 
     @Test
-    // https://openjdk.org/jeps/461
-    public void streamGatherersPreview() {
-        // Fixed-size windows
-        List<List<Integer>> windows = Stream.of(1, 2, 3, 4, 5)
-                .gather(Gatherers.windowFixed(2))
-                .toList();
-        assertEquals(List.of(List.of(1, 2), List.of(3, 4), List.of(5)), windows);
-
-        // Sliding windows
-        List<List<Integer>> sliding = Stream.of(1, 2, 3, 4, 5)
-                .gather(Gatherers.windowSliding(3))
-                .toList();
-        assertEquals(List.of(List.of(1, 2, 3), List.of(2, 3, 4), List.of(3, 4, 5)), sliding);
-
-        // fold
-        Optional<String> folded = Stream.of("a", "b", "c")
-                .gather(Gatherers.fold(() -> "", (acc, el) -> acc + el))
-                .findFirst();
-        assertEquals("abc", folded.orElse(""));
-
-        // scan (running accumulation)
-        List<Integer> scanned = Stream.of(1, 2, 3, 4, 5)
-                .gather(Gatherers.scan(() -> 0, Integer::sum))
-                .toList();
-        assertEquals(List.of(1, 3, 6, 10, 15), scanned);
-    }
-
-    @Test
-    // https://openjdk.org/jeps/447
-    public void statementsBeforeSuperPreview() {
-        // Statements before super(...) allow validation before calling the super constructor
-        class Shape {
-            final String name;
-            Shape(String name) {
-                this.name = name;
-            }
-        }
-        class Circle extends Shape {
-            final double radius;
-            Circle(String name, double radius) {
-                // Statements before super() - new in JDK 22 preview
-                if (radius <= 0) throw new IllegalArgumentException("radius must be positive");
-                super(name);
-                this.radius = radius;
-            }
-        }
-        Circle c = new Circle("circle", 5.0);
-        assertEquals("circle", c.name);
-        assertEquals(5.0, c.radius);
-        assertThrows(IllegalArgumentException.class, () -> new Circle("bad", -1));
-    }
-
-    @Test
     // https://openjdk.org/jeps/454
-    public void foreignFunctionAndMemoryApiFinal() throws Throwable {
-        // FFM API is now final (no longer preview)
+    public void foreignFunctionAndMemoryApi() throws Throwable {
+        // FFM API is final in JDK 22
         java.lang.foreign.SymbolLookup stdlib = java.lang.foreign.Linker.nativeLinker().defaultLookup();
         java.lang.invoke.MethodHandle strlen = java.lang.foreign.Linker.nativeLinker().downcallHandle(
                 stdlib.find("strlen").orElseThrow(),
